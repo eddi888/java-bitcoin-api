@@ -63,7 +63,7 @@ public class HttpSession {
             Object rawResponseMessage = tokener.nextValue();
             JSONObject response = (JSONObject) rawResponseMessage;
             if (response == null) {
-                throw new HttpSessionException("Invalid response type - " + rawResponseMessage.getClass());
+                throw new HttpSessionException("Invalid response type");
             }
             return response;
         } catch (HttpException e) {
