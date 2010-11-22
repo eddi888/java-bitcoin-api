@@ -32,22 +32,21 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 public class HttpSession {
+    private static final String JSON_CONTENT_TYPE = "application/json";
+    private static final String POST_CONTENT_TYPE = "text/plain";
 
-    static final String JSON_CONTENT_TYPE = "application/json";
-    static final String POST_CONTENT_TYPE = "text/plain";
-
-    private HttpClient       _client = null;
-    private URI                 _uri = null;
-    private Credentials _credentials = null;
-
+    private HttpClient       client = null;
+    private URI                 uri = null;
+    private Credentials credentials = null;
 
     public HttpSession(URI uri, Credentials credentials) {
-        this._uri = uri;
-        this._credentials = credentials;
+        this.uri = uri;
+        this.credentials = credentials;
     }
 
     public JSONObject sendAndReceive(JSONObject message) {
-        PostMethod method = new PostMethod(_uri.toString());
+        PostMethod method = new PostMethod(uri.toString());
+
         try {
             method.setRequestHeader("Content-Type", POST_CONTENT_TYPE);
 
@@ -56,15 +55,19 @@ public class HttpSession {
 
             getHttpClient().executeMethod(method);
             int statusCode = method.getStatusCode();
+
             if (statusCode != HttpStatus.SC_OK) {
                 throw new HttpSessionException("HTTP Status - " + HttpStatus.getStatusText(statusCode) + " (" + statusCode + ")");
             }
-            JSONTokener       tokener = new JSONTokener(method.getResponseBodyAsString());
+
+            JSONTokener tokener = new JSONTokener(method.getResponseBodyAsString());
             Object rawResponseMessage = tokener.nextValue();
             JSONObject response = (JSONObject) rawResponseMessage;
+
             if (response == null) {
                 throw new HttpSessionException("Invalid response type");
             }
+
             return response;
         } catch (HttpException e) {
             throw new HttpSessionException(e);
@@ -78,10 +81,11 @@ public class HttpSession {
     }    
 
     private HttpClient getHttpClient() {
-        if (_client == null) {
-            _client = new HttpClient();
-            _client.getState().setCredentials(AuthScope.ANY, _credentials);
+        if (client == null) {
+            client = new HttpClient();
+            client.getState().setCredentials(AuthScope.ANY, credentials);
         }
-        return _client;
+
+        return client;
     }
 }
