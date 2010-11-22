@@ -36,14 +36,12 @@ import ru.paradoxs.bitcoin.client.exceptions.BitcoinClientException;
  * @author paradoxs
  */
 public class BitcoinClient {
-    HttpSession session = null;
-    Credentials credentials = null;
-    URI uri = null;
+    private HttpSession session = null;
 
     public BitcoinClient(String host, String login, String password, int port) {
         try {
-            credentials = new UsernamePasswordCredentials(login, password);
-            uri = new URI("http", null, host, port, null, null, null);
+            Credentials credentials = new UsernamePasswordCredentials(login, password);
+            URI uri = new URI("http", null, host, port, null, null, null);
             session = new HttpSession(uri, credentials);
         } catch (URISyntaxException ex) {
             throw new BitcoinClientException("This host probably doesn't have correct syntax: " + host, ex);
@@ -51,13 +49,7 @@ public class BitcoinClient {
     }
 
     public BitcoinClient(String host, String login, String password) {
-        try {
-            credentials = new UsernamePasswordCredentials(login, password);
-            uri = new URI("http", null, host, 8332, null, null, null);
-            session = new HttpSession(uri, credentials);
-        } catch (URISyntaxException ex) {
-            throw new BitcoinClientException("This host probably doesn't have correct syntax: " + host, ex);
-        }
+        this(host, login, password, 8332);
     }
 
     /**
