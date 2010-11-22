@@ -39,7 +39,7 @@ public class HttpSession {
     private HttpClient       _client = null;
     private URI                 _uri = null;
     private Credentials _credentials = null;
-    
+
 
     public HttpSession(URI uri, Credentials credentials) {
         this._uri = uri;
