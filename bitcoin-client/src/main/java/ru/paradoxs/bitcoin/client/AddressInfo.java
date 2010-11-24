@@ -52,4 +52,14 @@ public class AddressInfo {
     public void setConfirmations(long confirmations) {
         this.confirmations = confirmations;
     }
+
+    @Override
+    public String toString() {
+        return "AddressInfo{" +
+                "address='" + address + '\'' +
+                ", label='" + label + '\'' +
+                ", amount=" + amount +
+                ", confirmations=" + confirmations +
+                '}';
+    }
 }

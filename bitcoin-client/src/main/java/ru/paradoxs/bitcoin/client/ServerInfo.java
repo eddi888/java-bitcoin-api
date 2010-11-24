@@ -92,4 +92,18 @@ public class ServerInfo {
     public void setHashesPerSecond(long HashesPerSecond) {
         this.HashesPerSecond = HashesPerSecond;
     }
+
+    @Override
+    public String toString() {
+        return "ServerInfo{" +
+                "version='" + version + '\'' +
+                ", balance=" + balance +
+                ", blocks=" + blocks +
+                ", connections=" + connections +
+                ", isGenerateCoins=" + isGenerateCoins +
+                ", usedCPUs=" + usedCPUs +
+                ", difficulty=" + difficulty +
+                ", HashesPerSecond=" + HashesPerSecond +
+                '}';
+    }
 }

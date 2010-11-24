@@ -43,4 +43,13 @@ public class LabelInfo {
     public void setConfirmations(long confirmations) {
         this.confirmations = confirmations;
     }
+
+    @Override
+    public String toString() {
+        return "LabelInfo{" +
+                "label='" + label + '\'' +
+                ", amount=" + amount +
+                ", confirmations=" + confirmations +
+                '}';
+    }
 }
