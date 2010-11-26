@@ -15,14 +15,13 @@
  */
 
 import org.junit.Test;
-import ru.paradoxs.bitcoin.client.AddressInfo;
-import ru.paradoxs.bitcoin.client.BitcoinClient;
-import ru.paradoxs.bitcoin.client.LabelInfo;
-import ru.paradoxs.bitcoin.client.ServerInfo;
+import ru.paradoxs.bitcoin.client.*;
 
 import java.util.List;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * A number of unit tests against a local Bitcoin server.
@@ -31,6 +30,7 @@ import static junit.framework.Assert.assertEquals;
  * I don't know how much credit, etc, the server has.
  */
 public class BitcoinTest {
+    private static final String EFF_DONATION_ADDRESS = "1MCwBbhNGp5hRm5rC1Aims2YFRe2SXPYKt";
     private static final String RPCUSER     = "RPCUSER";        // TODO: Change
     private static final String RPCPASSWORD = "RPCPASSWORD";    // TODO: Change
 
@@ -193,8 +193,21 @@ public class BitcoinTest {
     }
 
     @Test
+    public void testValidateAddress() {
+        ValidatedAddressInfo effInfo = bClient.validateAddress(EFF_DONATION_ADDRESS);
+
+        assertTrue(effInfo.getIsValid());
+        assertFalse(effInfo.getIsMine());
+        assertEquals(EFF_DONATION_ADDRESS, effInfo.getAddress());
+
+        ValidatedAddressInfo bogusInfo = bClient.validateAddress("BogUsAddr3ss");
+
+        assertFalse(bogusInfo.getIsValid());
+    }
+
+    @Test
     public void testSendToAddress() {
-        bClient.sendToAddress("1MCwBbhNGp5hRm5rC1Aims2YFRe2SXPYKt", 0.01d, "Use it wisely, EFF");
+        bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, "Use it wisely, EFF");
     }
 
     @Test

@@ -30,7 +30,10 @@ import org.json.JSONObject;
 import ru.paradoxs.bitcoin.client.exceptions.BitcoinClientException;
 
 /**
- * A Java API for accessing a Bitcoin server
+ * A Java API for accessing a Bitcoin server.
+ *
+ * PLEASE NOTE: It doesn't use https for the communication, just http, but access to the Bitcoin server is
+ * only allowed from localhost, so it shouldn't really matter.
  *
  * @see <a href="http://www.bitcoin.org/wiki/doku.php?id=api">Bitcoin API</a>
  * @author paradoxs
@@ -414,6 +417,31 @@ public class BitcoinClient {
             session.sendAndReceive(request);
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when stopping the bitcoin server", ex);
+        }
+    }
+
+    /**
+     * Validates a Bitcoin address
+     */
+    public ValidatedAddressInfo validateAddress(String address) {
+        try {
+            JSONArray parameters = new JSONArray().put(address);
+            JSONObject request = createRequest("validateaddress", parameters);
+            JSONObject response = session.sendAndReceive(request);
+            JSONObject result = (JSONObject) response.get("result");
+
+            ValidatedAddressInfo info = new ValidatedAddressInfo();
+            info.setIsValid(result.getBoolean("isvalid"));
+
+            if (info.getIsValid()) {
+                // The data below is only sent if the address is valid
+                info.setIsMine(result.getBoolean("ismine"));
+                info.setAddress(result.getString ("address"));
+            }
+
+            return info;
+        } catch (JSONException ex) {
+            throw new BitcoinClientException("Exception when validating an address", ex);
         }
     }
 
