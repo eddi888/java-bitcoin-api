@@ -47,8 +47,8 @@ public class BitcoinClient {
             Credentials credentials = new UsernamePasswordCredentials(login, password);
             URI uri = new URI("http", null, host, port, null, null, null);
             session = new HttpSession(uri, credentials);
-        } catch (URISyntaxException ex) {
-            throw new BitcoinClientException("This host probably doesn't have correct syntax: " + host, ex);
+        } catch (URISyntaxException e) {
+            throw new BitcoinClientException("This host probably doesn't have correct syntax: " + host, e);
         }
     }
 
@@ -77,8 +77,8 @@ public class BitcoinClient {
             }
 
             return list;
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Got incorrect JSON for this label: " + label, ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Got incorrect JSON for this label: " + label, e);
         }
     }
 
@@ -93,8 +93,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getDouble("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting balance", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting balance", e);
         }
     }
 
@@ -109,8 +109,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return  response.getInt("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting block count", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting block count", e);
         }
     }
 
@@ -125,8 +125,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getInt("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting the block number", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting the block number", e);
         }
     }
 
@@ -141,8 +141,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getInt("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting the number of connections", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting the number of connections", e);
         }
     }
 
@@ -157,8 +157,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getDouble("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting the difficulty", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting the difficulty", e);
         }
     }
 
@@ -173,8 +173,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getBoolean("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting whether the server is generating coins or not", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting whether the server is generating coins or not", e);
         }
     }
 
@@ -189,8 +189,8 @@ public class BitcoinClient {
             JSONArray parameters = new JSONArray().put(isGenerate).put(processorsCount);
             JSONObject request = createRequest("setgenerate", parameters);
             session.sendAndReceive(request);
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when setting whether the server is generating coins or not", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when setting whether the server is generating coins or not", e);
         }
     }
 
@@ -216,8 +216,8 @@ public class BitcoinClient {
             info.setVersion        (result.getString ("version"));            
 
             return info;
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting the server info", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting the server info", e);
         }
     }
 
@@ -233,8 +233,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getString("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting the label associated with a given address", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting the label associated with a given address", e);
         }
     }
 
@@ -249,8 +249,8 @@ public class BitcoinClient {
             JSONArray parameters = new JSONArray().put(address).put(label);
             JSONObject request = createRequest("setlabel", parameters);
             session.sendAndReceive(request);
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when setting the label associated with a given address", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when setting the label associated with a given address", e);
         }
     }
 
@@ -269,8 +269,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getString("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting the new bitcoin address for receiving payments", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting the new bitcoin address for receiving payments", e);
         }
     }
 
@@ -286,8 +286,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getDouble("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting the total amount received by bitcoinaddress", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting the total amount received by bitcoinaddress", e);
         }
     }
 
@@ -303,8 +303,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getDouble("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting the total amount received with label", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting the total amount received with label", e);
         }
     }
 
@@ -321,8 +321,8 @@ public class BitcoinClient {
             JSONObject response = session.sendAndReceive(request);
 
             return response.getString("result");
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting help for a command", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting help for a command", e);
         }
     }
 
@@ -353,8 +353,8 @@ public class BitcoinClient {
             }
 
             return list;
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting info about all received transactions by address", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting info about all received transactions by address", e);
         }
     }
 
@@ -385,8 +385,8 @@ public class BitcoinClient {
             }
 
             return list;
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when getting info about all received transactions by label", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting info about all received transactions by label", e);
         }
     }
 
@@ -403,8 +403,8 @@ public class BitcoinClient {
             JSONArray parameters = new JSONArray().put(address).put(amount).put(comment);
             JSONObject request = createRequest("sendtoaddress", parameters);
             session.sendAndReceive(request);
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when sending bitcoins", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when sending bitcoins", e);
         }
     }
 
@@ -415,8 +415,8 @@ public class BitcoinClient {
         try {
             JSONObject request = createRequest("stop");
             session.sendAndReceive(request);
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when stopping the bitcoin server", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when stopping the bitcoin server", e);
         }
     }
 
@@ -440,8 +440,18 @@ public class BitcoinClient {
             }
 
             return info;
-        } catch (JSONException ex) {
-            throw new BitcoinClientException("Exception when validating an address", ex);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when validating an address", e);
+        }
+    }
+
+    public void backupWallet(String destination) {
+        try {
+            JSONArray parameters = new JSONArray().put(destination);
+            JSONObject request = createRequest("backupwallet", parameters);
+            session.sendAndReceive(request);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when backing up the wallet", e);
         }
     }
 

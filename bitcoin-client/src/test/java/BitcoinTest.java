@@ -17,6 +17,7 @@
 import org.junit.Test;
 import ru.paradoxs.bitcoin.client.*;
 
+import java.io.File;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -31,8 +32,9 @@ import static org.junit.Assert.assertTrue;
  */
 public class BitcoinTest {
     private static final String EFF_DONATION_ADDRESS = "1MCwBbhNGp5hRm5rC1Aims2YFRe2SXPYKt";
-    private static final String RPCUSER     = "RPCUSER";        // TODO: Change
-    private static final String RPCPASSWORD = "RPCPASSWORD";    // TODO: Change
+    private static final String RPCUSER          = "RPCUSER";        // TODO: Change to what you have in bitcoin.conf file
+    private static final String RPCPASSWORD      = "RPCPASSWORD";    // TODO: Change to what you have in bitcoin.conf file
+    private static final String BACKUP_DIRECTORY = "/home/user";     // TODO: Change, but never ever to your Bitcoin data directory !!
 
     private BitcoinClient bClient = new BitcoinClient("127.0.0.1", RPCUSER, RPCPASSWORD);
 
@@ -208,6 +210,17 @@ public class BitcoinTest {
     @Test
     public void testSendToAddress() {
         bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, "Use it wisely, EFF");
+    }
+
+    @Test
+    public void testBackupWallet() {
+        bClient.backupWallet(BACKUP_DIRECTORY);
+
+        File file = new File(BACKUP_DIRECTORY + File.separator + "wallet.dat");
+
+        assertTrue(file.exists());
+
+        // file.delete();     // Dangerous, if, by chance, someone sets BACKUP_DIRECTORY to ~/.bitcoin
     }
 
     @Test
