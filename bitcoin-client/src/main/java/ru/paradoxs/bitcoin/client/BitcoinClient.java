@@ -399,6 +399,10 @@ public class BitcoinClient {
      * @param comment a comment for this transfer, can be null
      */
     public void sendToAddress(String address, double amount, String comment) {
+        if (amount < 0.01) {
+            throw new BitcoinClientException("The current machinery doesn't support transactions of less than 0.01 Bitcoins");
+        }
+
         try {
             JSONArray parameters = new JSONArray().put(address).put(amount).put(comment);
             JSONObject request = createRequest("sendtoaddress", parameters);
