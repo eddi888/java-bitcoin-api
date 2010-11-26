@@ -31,6 +31,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+/**
+ * Manages the HTTP machinery for accessing the Bitcoin server.
+ * 
+ * PLEASE NOTE that it doesn't do https, only http!
+ */
 public class HttpSession {
     private static final String JSON_CONTENT_TYPE = "application/json";
     private static final String POST_CONTENT_TYPE = "text/plain";

@@ -34,6 +34,7 @@ import ru.paradoxs.bitcoin.client.exceptions.BitcoinClientException;
  *
  * @see <a href="http://www.bitcoin.org/wiki/doku.php?id=api">Bitcoin API</a>
  * @author paradoxs
+ * @author mats@henricson.se
  */
 public class BitcoinClient {
     private HttpSession session = null;
@@ -60,23 +61,18 @@ public class BitcoinClient {
      */
     public List<String> getAddressesByLabel(String label) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(label);
-
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getaddressesbylabel");
-            object.put("params",  parameters);
-
-            JSONObject response = session.sendAndReceive(object);
-            JSONArray    result = (JSONArray)response.get("result");
+            JSONArray parameters = new JSONArray().put(label);
+            JSONObject request = createRequest("getaddressesbylabel", parameters);
+            JSONObject response = session.sendAndReceive(request);
+            JSONArray result = (JSONArray)response.get("result");
             int size = result.length();
 
-            List<String> list = new ArrayList<String>();            
-            for (int i = 0; i<size; i++) {                
+            List<String> list = new ArrayList<String>();
+
+            for (int i = 0; i<size; i++) {
                 list.add(result.getString(i));
             }
+
             return list;
         } catch (JSONException ex) {
             throw new BitcoinClientException("Got incorrect JSON for this label: " + label, ex);
@@ -89,14 +85,10 @@ public class BitcoinClient {
      * @return the balance
      */
     public double getBalance() {
-        try {            
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getbalance");
-            object.put("params",  new JSONArray());
+        try {
+            JSONObject request = createRequest("getbalance");
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject response = session.sendAndReceive(object);
             return response.getDouble("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting balance", ex);
@@ -110,13 +102,9 @@ public class BitcoinClient {
      */
     public int getBlockCount() {
         try {
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getblockcount");
-            object.put("params",  new JSONArray());
+            JSONObject request = createRequest("getblockcount");
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject response = session.sendAndReceive(object);
             return  response.getInt("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting block count", ex);
@@ -130,13 +118,9 @@ public class BitcoinClient {
      */
     public int getBlockNumber() {
         try {
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getblocknumber");
-            object.put("params",  new JSONArray());
+            JSONObject request = createRequest("getblocknumber");
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject response = session.sendAndReceive(object);
             return response.getInt("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting the block number", ex);
@@ -150,13 +134,9 @@ public class BitcoinClient {
      */
     public int getConnectionCount() {
         try {
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getconnectioncount");
-            object.put("params",  new JSONArray());
+            JSONObject request = createRequest("getconnectioncount");
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject response = session.sendAndReceive(object);
             return response.getInt("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting the number of connections", ex);
@@ -170,13 +150,9 @@ public class BitcoinClient {
      */
     public double getDifficulty() {
         try {
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getdifficulty");
-            object.put("params",  new JSONArray());
+            JSONObject request = createRequest("getdifficulty");
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject response = session.sendAndReceive(object);
             return response.getDouble("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting the difficulty", ex);
@@ -190,13 +166,9 @@ public class BitcoinClient {
      */
     public boolean getGenerate() {
         try {
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getgenerate");
-            object.put("params",  new JSONArray());
+            JSONObject request = createRequest("getgenerate");
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject response = session.sendAndReceive(object);
             return response.getBoolean("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting whether the server is generating coins or not", ex);
@@ -211,17 +183,9 @@ public class BitcoinClient {
      */
     public void setGenerate(boolean isGenerate, int processorsCount) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(isGenerate);
-            parameters.put(processorsCount);
-
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "setgenerate");
-            object.put("params",  parameters);
-
-            session.sendAndReceive(object);
+            JSONArray parameters = new JSONArray().put(isGenerate).put(processorsCount);
+            JSONObject request = createRequest("setgenerate", parameters);
+            session.sendAndReceive(request);
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when setting whether the server is generating coins or not", ex);
         }
@@ -234,15 +198,8 @@ public class BitcoinClient {
      */
     public ServerInfo getServerInfo() {
         try {
-            JSONArray parameters = new JSONArray();            
-
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getinfo");
-            object.put("params",  parameters);
-
-            JSONObject response = session.sendAndReceive(object);
+            JSONObject request = createRequest("getinfo");
+            JSONObject response = session.sendAndReceive(request);
             JSONObject result = (JSONObject) response.get("result");
 
             ServerInfo info = new ServerInfo();
@@ -268,16 +225,10 @@ public class BitcoinClient {
      */
     public String getLabel(String address) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(address);
+            JSONArray parameters = new JSONArray().put(address);
+            JSONObject request = createRequest("getlabel", parameters);
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getlabel");
-            object.put("params",  parameters);
-
-            JSONObject response = session.sendAndReceive(object);
             return response.getString("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting the label associated with a given address", ex);
@@ -292,17 +243,9 @@ public class BitcoinClient {
      */
     public void setLabelForAddress(String address, String label) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(address);
-            parameters.put(label);
-
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "setlabel");
-            object.put("params",  parameters);
-
-            session.sendAndReceive(object);
+            JSONArray parameters = new JSONArray().put(address).put(label);
+            JSONObject request = createRequest("setlabel", parameters);
+            session.sendAndReceive(request);
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when setting the label associated with a given address", ex);
         }
@@ -318,16 +261,10 @@ public class BitcoinClient {
      */
     public String getNewAddress(String label) {
         try {
-            JSONArray parameters = new JSONArray();            
-            parameters.put(label);
+            JSONArray parameters = new JSONArray().put(label);
+            JSONObject request = createRequest("getnewaddress", parameters);
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getnewaddress");
-            object.put("params",  parameters);
-
-            JSONObject response = session.sendAndReceive(object);
             return response.getString("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting the new bitcoin address for receiving payments", ex);
@@ -337,23 +274,14 @@ public class BitcoinClient {
     /**
      * Returns the total amount received by bitcoinaddress in transactions
      *
-     * @param address
-     * @param minimumConfirmations
      * @return total amount received
      */
     public double getReceivedByAddress(String address, long minimumConfirmations) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(address);
-            parameters.put(minimumConfirmations);
+            JSONArray parameters = new JSONArray().put(address).put(minimumConfirmations);
+            JSONObject request = createRequest("getreceivedbyaddress", parameters);
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getreceivedbyaddress");
-            object.put("params",  parameters);
-
-            JSONObject response = session.sendAndReceive(object);
             return response.getDouble("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting the total amount received by bitcoinaddress", ex);
@@ -363,23 +291,14 @@ public class BitcoinClient {
     /**
      * Returns the total amount received by addresses with label in transactions
      *
-     * @param label
-     * @param minimumConfirmations
      * @return total amount received
      */
     public double getReceivedByLabel(String label, long minimumConfirmations) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(label);
-            parameters.put(minimumConfirmations);
+            JSONArray parameters = new JSONArray().put(label).put(minimumConfirmations);
+            JSONObject request = createRequest("getreceivedbylabel", parameters);
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "getreceivedbylabel");
-            object.put("params",  parameters);
-
-            JSONObject response = session.sendAndReceive(object);
             return response.getDouble("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting the total amount received with label", ex);
@@ -394,16 +313,10 @@ public class BitcoinClient {
      */
     public String help(String command) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(command);            
+            JSONArray parameters = new JSONArray().put(command);
+            JSONObject request = createRequest("help", parameters);
+            JSONObject response = session.sendAndReceive(request);
 
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "help");
-            object.put("params",  parameters);
-
-            JSONObject response = session.sendAndReceive(object);
             return response.getString("result");
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting help for a command", ex);
@@ -419,22 +332,14 @@ public class BitcoinClient {
      */
     public List<AddressInfo> listReceivedByAddress(long minimumConfirmations, boolean includeEmpty) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(minimumConfirmations);
-            parameters.put(includeEmpty);
-
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "listreceivedbyaddress");
-            object.put("params",  parameters);
-            JSONObject response = session.sendAndReceive(object);
-
+            JSONArray parameters = new JSONArray().put(minimumConfirmations).put(includeEmpty);
+            JSONObject request = createRequest("listreceivedbyaddress", parameters);
+            JSONObject response = session.sendAndReceive(request);
             JSONArray result = response.getJSONArray("result");
             int size = result.length();
-
             List<AddressInfo> list = new ArrayList<AddressInfo>();
-            for(int i = 0; i<size; i++) {
+
+            for (int i = 0; i < size; i++) {
                 AddressInfo info = new AddressInfo();
                 JSONObject jObject = result.getJSONObject(i);
                 info.setAddress(jObject.getString("address"));
@@ -443,6 +348,7 @@ public class BitcoinClient {
                 info.setConfirmations(jObject.getLong("confirmations"));
                 list.add(info);
             }
+
             return list;
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting info about all received transactions by address", ex);
@@ -458,22 +364,15 @@ public class BitcoinClient {
      */
     public List<LabelInfo> listReceivedByLabel(long minimumConfirmations, boolean includeEmpty) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(minimumConfirmations);
-            parameters.put(includeEmpty);
-
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "listreceivedbylabel");
-            object.put("params",  parameters);
-            JSONObject response = session.sendAndReceive(object);
-
+            JSONArray parameters = new JSONArray().put(minimumConfirmations).put(includeEmpty);
+            JSONObject request = createRequest("listreceivedbylabel", parameters);
+            JSONObject response = session.sendAndReceive(request);
             JSONArray result = response.getJSONArray("result");
             int size = result.length();
 
             List<LabelInfo> list = new ArrayList<LabelInfo>();
-            for(int i = 0; i<size; i++) {
+
+            for (int i = 0; i < size; i++) {
                 LabelInfo info = new LabelInfo();
                 JSONObject jObject = result.getJSONObject(i);                
                 info.setLabel        (jObject.getString("label"));
@@ -481,6 +380,7 @@ public class BitcoinClient {
                 info.setConfirmations(jObject.getLong("confirmations"));
                 list.add(info);
             }
+
             return list;
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when getting info about all received transactions by label", ex);
@@ -497,37 +397,37 @@ public class BitcoinClient {
      */
     public void sendToAddress(String address, double amount, String comment) {
         try {
-            JSONArray parameters = new JSONArray();
-            parameters.put(address);
-            parameters.put(amount);
-
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "sendtoaddress");
-            object.put("params",  parameters);
-            session.sendAndReceive(object);
+            JSONArray parameters = new JSONArray().put(address).put(amount).put(comment);
+            JSONObject request = createRequest("sendtoaddress", parameters);
+            session.sendAndReceive(request);
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when sending bitcoins", ex);
         }
     }
 
     /**
-     * stops the bitcoin server
+     * Stops the bitcoin server
      */
     public void stop() {
         try {
-            JSONArray parameters = new JSONArray();            
-
-            JSONObject object = new JSONObject();
-            object.put("jsonrpc", "2.0");
-            object.put("id",      UUID.randomUUID().toString());
-            object.put("method",  "stop");
-            object.put("params",  parameters);
-
-            session.sendAndReceive(object);
+            JSONObject request = createRequest("stop");
+            session.sendAndReceive(request);
         } catch (JSONException ex) {
             throw new BitcoinClientException("Exception when stopping the bitcoin server", ex);
         }
+    }
+
+    private JSONObject createRequest(String functionName, JSONArray parameters) throws JSONException {
+        JSONObject request = new JSONObject();
+        request.put("jsonrpc", "2.0");
+        request.put("id",      UUID.randomUUID().toString());
+        request.put("method", functionName);
+        request.put("params",  parameters);
+
+        return request;
+    }
+
+    private JSONObject createRequest(String functionName) throws JSONException {
+        return createRequest(functionName, new JSONArray());
     }
 }
