@@ -227,4 +227,13 @@ public class BitcoinTest {
     public void testStop() {
         bClient.stop();
     }
+
+    @Test
+    public void testRounding() {
+        assertEquals(0.5,  BitcoinClient.roundToTwoDecimals(0.5),    0.00000000001);
+        assertEquals(0.06, BitcoinClient.roundToTwoDecimals(0.055),  0.00000000001);
+        assertEquals(1.11, BitcoinClient.roundToTwoDecimals(1.114),  0.00000000001);
+        assertEquals(1.12, BitcoinClient.roundToTwoDecimals(1.115),  0.00000000001);
+        assertEquals(0.01, BitcoinClient.roundToTwoDecimals(0.0149), 0.00000000001);
+    }
 }

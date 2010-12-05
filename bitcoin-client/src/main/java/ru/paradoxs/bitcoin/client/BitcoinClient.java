@@ -15,6 +15,9 @@
  */
 package ru.paradoxs.bitcoin.client;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -34,6 +37,8 @@ import ru.paradoxs.bitcoin.client.exceptions.BitcoinClientException;
  *
  * PLEASE NOTE: It doesn't use https for the communication, just http, but access to the Bitcoin server is
  * only allowed from localhost, so it shouldn't really matter.
+ *
+ * TODO: The API should really use BigDecimal instead of doubles.
  *
  * @see <a href="http://www.bitcoin.org/wiki/doku.php?id=api">Bitcoin API</a>
  * @author paradoxs
@@ -403,6 +408,12 @@ public class BitcoinClient {
             throw new BitcoinClientException("The current machinery doesn't support transactions of less than 0.01 Bitcoins");
         }
 
+        if (amount > 2100000.0) {
+            throw new BitcoinClientException("Sorry dude, can't transfer that many Bitcoins");
+        }
+
+        amount = roundToTwoDecimals(amount);
+
         try {
             JSONArray parameters = new JSONArray().put(address).put(amount).put(comment);
             JSONObject request = createRequest("sendtoaddress", parameters);
@@ -457,6 +468,19 @@ public class BitcoinClient {
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when backing up the wallet", e);
         }
+    }
+
+    /**
+     * Rounds a double to the nearest dwo decimals, rounding UP.
+     * Not proud of this code, but it works.
+     * The function is public static, so I can test it in isolation.
+     */
+    public static double roundToTwoDecimals(double amount) {
+        BigDecimal amountTimes100 = new BigDecimal(amount * 100 + 0.5);
+        BigDecimal roundedAmountTimes100 = new BigDecimal(amountTimes100.intValue());
+        BigDecimal roundedAmount = roundedAmountTimes100.divide(new BigDecimal(100.0));
+
+        return roundedAmount.doubleValue();
     }
 
     private JSONObject createRequest(String functionName, JSONArray parameters) throws JSONException {
