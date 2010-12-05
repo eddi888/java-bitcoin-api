@@ -408,7 +408,7 @@ public class BitcoinClient {
             throw new BitcoinClientException("The current machinery doesn't support transactions of less than 0.01 Bitcoins");
         }
 
-        if (amount > 2100000.0) {
+        if (amount > 21000000.0) {
             throw new BitcoinClientException("Sorry dude, can't transfer that many Bitcoins");
         }
 
