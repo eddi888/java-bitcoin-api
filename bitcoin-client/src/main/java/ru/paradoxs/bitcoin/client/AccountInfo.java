@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Aleksey Krivosheev (paradoxs.mail@gmail.com)
+ * Copyright 2010 Mats Henricson (mats@henricson.se)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,19 +15,10 @@
  */
 package ru.paradoxs.bitcoin.client;
 
-public class AddressInfo {
-    private String address = "";
+public class AccountInfo {
     private String account = "";
     private double amount = 0;
     private long confirmations = 0;
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
 
     public String getAccount() {
         return account;
@@ -55,9 +46,8 @@ public class AddressInfo {
 
     @Override
     public String toString() {
-        return "AddressInfo{" +
-                "address='" + address + '\'' +
-                ", account='" + account + '\'' +
+        return "AccountInfo{" +
+                "account='" + account + '\'' +
                 ", amount=" + amount +
                 ", confirmations=" + confirmations +
                 '}';

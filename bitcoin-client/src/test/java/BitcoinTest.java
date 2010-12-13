@@ -20,15 +20,16 @@ import ru.paradoxs.bitcoin.client.*;
 import java.io.File;
 import java.util.List;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * A number of unit tests against a local Bitcoin server.
  * The tests are written so that they fail if the communication
  * fails, i.e. throws an exception. Can't really assert much, since
  * I don't know how much credit, etc, the server has.
+ *
+ * @author mats@henricson.se
  */
 public class BitcoinTest {
     private static final String EFF_DONATION_ADDRESS = "1MCwBbhNGp5hRm5rC1Aims2YFRe2SXPYKt";
@@ -41,6 +42,16 @@ public class BitcoinTest {
     @Test
     public void testGetBalance() {
         double balance = bClient.getBalance();
+
+        System.out.println("balance = " + balance);
+    }
+
+    @Test
+    public void testGetBalanceWithParameter() {
+        String accountName = "anAccountName";
+        String addressForAccount = bClient.getAccountAddress(accountName);
+
+        double balance = bClient.getBalance(accountName);
 
         System.out.println("balance = " + balance);
     }
@@ -138,12 +149,38 @@ public class BitcoinTest {
     }
 
     @Test
+    public void testGetAccount() {
+        List<AddressInfo> addressInfos = bClient.listReceivedByAddress(1, false);
+
+        for (AddressInfo ai : addressInfos) {
+            String address = ai.getAddress();
+            String account = bClient.getAccount(address);
+
+            System.out.println("account = " + account);
+        }
+    }
+
+    @Test
     public void testGetAddressesByLabel() {
         List<LabelInfo> labelInfos = bClient.listReceivedByLabel(1, false);
 
         for (LabelInfo li : labelInfos) {
             String label = li.getLabel();
             List<String> addresses = bClient.getAddressesByLabel(label);
+
+            for (String address : addresses) {
+                System.out.println("address = " + address);
+            }
+        }
+    }
+
+    @Test
+    public void testGetAddressesByAccount() {
+        List<AccountInfo> accountInfos = bClient.listReceivedByAccount(1, false);
+
+        for (AccountInfo ai : accountInfos) {
+            String account = ai.getAccount();
+            List<String> addresses = bClient.getAddressesByAccount(account);
 
             for (String address : addresses) {
                 System.out.println("address = " + address);
@@ -169,7 +206,35 @@ public class BitcoinTest {
 
         for (LabelInfo li : labelInfos) {
             String label = li.getLabel();
+            double amount = li.getAmount();
+            long confirmations = li.getConfirmations();
+
+            assertTrue(amount > 0);
+            assertTrue(confirmations > 0);
+
             double received = bClient.getReceivedByLabel(label, 1);
+
+            assertEquals(amount, received, 0.001);
+
+            System.out.println("received = " + received);
+        }
+    }
+
+    @Test
+    public void testGetReceivedByAccount() {
+        List<AccountInfo> accountInfos = bClient.listReceivedByAccount(1, false);
+
+        for (AccountInfo ai : accountInfos) {
+            String account = ai.getAccount();
+            double amount = ai.getAmount();
+            long confirmations = ai.getConfirmations();
+
+            assertTrue(amount > 0);
+            assertTrue(confirmations > 0);
+
+            double received = bClient.getReceivedByAccount(account, 1);
+
+            assertEquals(amount, received, 0.001);
 
             System.out.println("received = " + received);
         }
@@ -180,6 +245,36 @@ public class BitcoinTest {
         String address = bClient.getNewAddress("Testing testing");
 
         System.out.println("address = " + address);
+
+        assertNotNull(address);
+        assertEquals(EFF_DONATION_ADDRESS.length(), address.length());
+    }
+
+    @Test
+    public void testGetAccountAddress() {
+        // First we try with null account
+        String addressToNullAccount = bClient.getAccountAddress(null);
+
+        System.out.println("addressToNullAccount = " + addressToNullAccount);
+
+        assertNotNull(addressToNullAccount);
+        assertTrue(addressToNullAccount.length() > 30);
+
+        // Then we try with empty account
+        String addressToEmptyAccount = bClient.getAccountAddress(null);
+
+        System.out.println("addressToEmptyAccount = " + addressToEmptyAccount);
+
+        assertNotNull(addressToEmptyAccount);
+        assertTrue(addressToEmptyAccount.length() > 30);
+
+        // Finally with real account name
+        String addressToRealAccount = bClient.getAccountAddress(null);
+
+        System.out.println("addressToRealAccount = " + addressToRealAccount);
+
+        assertNotNull(addressToRealAccount);
+        assertTrue(addressToRealAccount.length() > 30);
     }
 
     @Test
@@ -192,6 +287,18 @@ public class BitcoinTest {
         assertEquals(newLabel, label);
 
         System.out.println("label = " + label);
+    }
+
+    @Test
+    public void testSetAccountForAddress() {
+        String newAccount = "Brand New Acount";
+        String address = bClient.getAccountAddress("Testing testing client");
+        bClient.setAccountForAddress(address, newAccount);
+        String account = bClient.getAccount(address);
+
+        assertEquals(newAccount, account);
+
+        System.out.println("account = " + account);
     }
 
     @Test
@@ -209,7 +316,10 @@ public class BitcoinTest {
 
     @Test
     public void testSendToAddress() {
-        bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, "Use it wisely, EFF");
+        String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, "Use it wisely, EFF");
+        assertNotNull(txId);
+        assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
+        assertTrue(txId.length() > 30);    // A 256 bit hash
     }
 
     @Test
