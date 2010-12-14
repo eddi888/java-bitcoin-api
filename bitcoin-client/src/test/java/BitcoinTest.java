@@ -44,16 +44,20 @@ public class BitcoinTest {
         double balance = bClient.getBalance();
 
         System.out.println("balance = " + balance);
+
+        assertTrue(balance >= 0.0);
     }
 
     @Test
     public void testGetBalanceWithParameter() {
         String accountName = "anAccountName";
-        String addressForAccount = bClient.getAccountAddress(accountName);
+        bClient.getAccountAddress(accountName);        // This creates an account, if it doesn't exist
 
         double balance = bClient.getBalance(accountName);
 
         System.out.println("balance = " + balance);
+
+        assertTrue(balance >= 0.0);
     }
 
     @Test
@@ -61,6 +65,8 @@ public class BitcoinTest {
         int blockCount = bClient.getBlockCount();
 
         System.out.println("blockCount = " + blockCount);
+
+        assertTrue(blockCount > 0);
     }
 
     @Test
@@ -68,6 +74,8 @@ public class BitcoinTest {
         int blockNumber = bClient.getBlockNumber();
 
         System.out.println("blockNumber = " + blockNumber);
+
+        assertTrue(blockNumber > 0);
     }
 
     @Test
@@ -75,6 +83,8 @@ public class BitcoinTest {
         int connectionCount = bClient.getConnectionCount();
 
         System.out.println("connectionCount = " + connectionCount);
+
+        assertTrue(connectionCount >= 0);
     }
 
     @Test
@@ -82,6 +92,8 @@ public class BitcoinTest {
         double difficulty = bClient.getDifficulty();
 
         System.out.println("difficulty = " + difficulty);
+
+        assertTrue(difficulty > 0);
     }
 
     @Test
@@ -89,6 +101,8 @@ public class BitcoinTest {
         String help = bClient.help("getbalance");
 
         System.out.println("help = " + help);
+
+        assertTrue(help.length() > 0);
     }
 
     @Test
@@ -116,10 +130,23 @@ public class BitcoinTest {
     }
 
     @Test
+    public void testGetHashesPerSecond() {
+        bClient.setGenerate(true, 1);
+        long hashesPerSecond = bClient.getHashesPerSecond();
+        bClient.setGenerate(false, 1);
+
+        System.out.println("hashesPerSecond = " + hashesPerSecond);
+
+        assertTrue(hashesPerSecond >= 0);
+    }
+
+    @Test
     public void testGetServerInfo() {
         ServerInfo serverInfo = bClient.getServerInfo();
 
         System.out.println("serverInfo = " + serverInfo);
+
+        assertTrue(serverInfo != null);
     }
 
     @Test
@@ -127,6 +154,8 @@ public class BitcoinTest {
         List<AddressInfo> addressInfos = bClient.listReceivedByAddress(1, false);
 
         System.out.println("addressInfos = " + addressInfos);
+
+        assertTrue(addressInfos != null);
     }
 
     @Test
@@ -134,6 +163,8 @@ public class BitcoinTest {
         List<LabelInfo> labelInfos = bClient.listReceivedByLabel(1, false);
 
         System.out.println("labelInfos = " + labelInfos);
+
+        assertTrue(labelInfos != null);
     }
 
     @Test
@@ -145,6 +176,8 @@ public class BitcoinTest {
             String label = bClient.getLabel(address);
 
             System.out.println("label = " + label);
+
+            assertTrue(label.length() > 0);
         }
     }
 
@@ -170,6 +203,8 @@ public class BitcoinTest {
 
             for (String address : addresses) {
                 System.out.println("address = " + address);
+
+                assertTrue(address.length() > 0);
             }
         }
     }
@@ -184,6 +219,8 @@ public class BitcoinTest {
 
             for (String address : addresses) {
                 System.out.println("address = " + address);
+
+                assertTrue(address.length() > 0);
             }
         }
     }
@@ -197,6 +234,8 @@ public class BitcoinTest {
             double received = bClient.getReceivedByAddress(address, 1);
 
             System.out.println("received = " + received);
+
+            assertTrue(received >= 0.0);
         }
     }
 

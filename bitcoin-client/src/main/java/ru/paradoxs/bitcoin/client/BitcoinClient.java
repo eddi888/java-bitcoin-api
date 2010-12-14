@@ -207,6 +207,23 @@ public class BitcoinClient {
     }
 
     /**
+     * Returns the current number of hashes computed per second
+     *
+     * @return the number of computed hashes per second
+     * @since 0.3.18
+     */
+    public long getHashesPerSecond() {
+        try {
+            JSONObject request = createRequest("gethashespersec");
+            JSONObject response = session.sendAndReceive(request);
+
+            return response.getLong("result");
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting the number of calculated hashes per second", e);
+        }
+    }
+
+    /**
      * Returns the proof-of-work difficulty as a multiple of the minimum difficulty
      *
      * @return the current difficulty
