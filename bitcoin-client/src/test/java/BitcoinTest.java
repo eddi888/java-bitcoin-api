@@ -33,9 +33,9 @@ import static org.junit.Assert.assertEquals;
  */
 public class BitcoinTest {
     private static final String EFF_DONATION_ADDRESS = "1MCwBbhNGp5hRm5rC1Aims2YFRe2SXPYKt";
-    private static final String RPCUSER          = "matsh";        // TODO: Change to what you have in bitcoin.conf file
-    private static final String RPCPASSWORD      = "korpen";    // TODO: Change to what you have in bitcoin.conf file
-    private static final String BACKUP_DIRECTORY = "/home/mats";     // TODO: Change, but never ever to your Bitcoin data directory !!
+    private static final String RPCUSER          = "RPCUSER";        // TODO: Change to what you have in bitcoin.conf file
+    private static final String RPCPASSWORD      = "RPCPASSWORD";    // TODO: Change to what you have in bitcoin.conf file
+    private static final String BACKUP_DIRECTORY = "/home/user";     // TODO: Change, but never ever to your Bitcoin data directory !!
 
     private BitcoinClient bClient = new BitcoinClient("127.0.0.1", RPCUSER, RPCPASSWORD);
 
@@ -390,7 +390,7 @@ public class BitcoinTest {
             if (category.equals("generate") ||
                 category.equals("send") ||
                 category.equals("receive")) {
-                assertTrue(txInfo.getConfirmations() > 0);
+                assertTrue(txInfo.getConfirmations() >= 0);    // One send may be very recent
                 assertNotNull(txInfo.getTxId());
                 assertTrue(txInfo.getTxId().length() > 0);
             }
