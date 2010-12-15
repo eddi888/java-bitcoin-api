@@ -355,10 +355,20 @@ public class BitcoinTest {
 
     @Test
     public void testSendToAddress() {
-        String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, "Use it wisely, EFF");
+        String message = "Use it wisely, EFF";
+        String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, message);
         assertNotNull(txId);
         assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
         assertTrue(txId.length() > 30);    // A 256 bit hash
+
+        TransactionInfo info = bClient.getTransaction(txId);
+
+        assertNotNull(info);
+        // assertEquals("send", info.getCategory());    // TODO: https://github.com/gavinandresen/bitcoin-git/issues/issue/20
+        assertEquals(txId, info.getTxId());
+        assertEquals(-0.01, info.getAmount(), 0.00000001);
+        assertTrue(info.getFee() == 0.0);
+        assertEquals(message, info.getMessage());
     }
 
     @Test

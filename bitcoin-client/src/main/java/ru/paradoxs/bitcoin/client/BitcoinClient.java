@@ -638,37 +638,8 @@ public class BitcoinClient {
             List<TransactionInfo> list = new ArrayList<TransactionInfo>(size);
 
             for (int i = 0; i < size; i++) {
-                TransactionInfo info = new TransactionInfo();
                 JSONObject jObject = result.getJSONObject(i);
-
-                info.setCategory(jObject.getString("category"));
-                info.setAmount(jObject.getDouble("amount"));
-
-                if (info.getCategory().equals("send")) {
-                    info.setFee(jObject.getDouble("fee"));
-
-                    if (!jObject.isNull("message")) {
-                        info.setMessage(jObject.getString("message"));
-                    }
-
-                    if (!jObject.isNull("to")) {
-                        info.setTo(jObject.getString("to"));
-                    }
-                }
-
-                if (info.getCategory().equals("generate") ||
-                    info.getCategory().equals("send") ||
-                    info.getCategory().equals("receive")) {
-                    info.setConfirmations(jObject.getLong("confirmations"));
-                    info.setTxId(jObject.getString("txid"));
-                }
-
-                if (info.getCategory().equals("move")) {
-                    if (!jObject.isNull("otheraccount")) {
-                        info.setOtheraccount(jObject.getString("otheraccount"));
-                    }
-                }
-
+                TransactionInfo info = parseTransactionInfoFromJson(jObject);
                 list.add(info);
             }
 
@@ -676,6 +647,66 @@ public class BitcoinClient {
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when getting transactions for account: " + account, e);
         }
+    }
+
+    /**
+     * Returns transaction information for a specific transaction ID
+     *
+     * @param txId the transaction ID
+     * @return information about the transaction with that ID
+     * @since 0.3.18
+     */
+    public TransactionInfo getTransaction(String txId) {
+        try {
+            JSONArray parameters = new JSONArray().put(txId);
+            JSONObject request = createRequest("gettransaction", parameters);
+            JSONObject response = session.sendAndReceive(request);
+            JSONObject result = (JSONObject) response.get("result");
+
+            return parseTransactionInfoFromJson(result);
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting transaction info for this id: " + txId, e);
+        }
+    }
+
+    private TransactionInfo parseTransactionInfoFromJson(JSONObject jObject) throws JSONException {
+        TransactionInfo info = new TransactionInfo();
+
+        if (!jObject.isNull("category")) {
+            // TODO: https://github.com/gavinandresen/bitcoin-git/issues/issue/20
+            info.setCategory(jObject.getString("category"));
+        }
+        else {
+            info.setCategory("send");    // TODO: Hopefully true, just working around the bug above
+        }
+
+        info.setAmount(jObject.getDouble("amount"));
+
+        if (info.getCategory().equals("send")) {
+            info.setFee(jObject.getDouble("fee"));
+
+            if (!jObject.isNull("message")) {
+                info.setMessage(jObject.getString("message"));
+            }
+
+            if (!jObject.isNull("to")) {
+                info.setTo(jObject.getString("to"));
+            }
+        }
+
+        if (info.getCategory().equals("generate") ||
+            info.getCategory().equals("send") ||
+            info.getCategory().equals("receive")) {
+            info.setConfirmations(jObject.getLong("confirmations"));
+            info.setTxId(jObject.getString("txid"));
+        }
+
+        if (info.getCategory().equals("move")) {
+            if (!jObject.isNull("otheraccount")) {
+                info.setOtherAccount(jObject.getString("otheraccount"));
+            }
+        }
+        return info;
     }
 
     /**

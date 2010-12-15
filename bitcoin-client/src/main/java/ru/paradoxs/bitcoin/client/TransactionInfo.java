@@ -21,7 +21,7 @@ public class TransactionInfo {
     private double fee;          // Only for send, can be 0.0
     private long confirmations;  // only for generate/send/receive
     private String txId;         // only for generate/send/receive
-    private String otheraccount; // only for move
+    private String otherAccount; // only for move
     private String message;      // only for send, can be null
     private String to;           // only for send, can be null
 
@@ -65,12 +65,12 @@ public class TransactionInfo {
         this.txId = txId;
     }
 
-    public String getOtheraccount() {
-        return otheraccount;
+    public String getOtherAccount() {
+        return otherAccount;
     }
 
-    public void setOtheraccount(String otheraccount) {
-        this.otheraccount = otheraccount;
+    public void setOtherAccount(String otherAccount) {
+        this.otherAccount = otherAccount;
     }
 
     public String getMessage() {
@@ -97,7 +97,7 @@ public class TransactionInfo {
                 ", fee=" + fee +
                 ", confirmations=" + confirmations +
                 ", txId='" + txId + '\'' +
-                ", otheraccount='" + otheraccount + '\'' +
+                ", otherAccount='" + otherAccount + '\'' +
                 ", message='" + message + '\'' +
                 ", to='" + to + '\'' +
                 '}';
