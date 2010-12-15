@@ -33,9 +33,9 @@ import static org.junit.Assert.assertEquals;
  */
 public class BitcoinTest {
     private static final String EFF_DONATION_ADDRESS = "1MCwBbhNGp5hRm5rC1Aims2YFRe2SXPYKt";
-    private static final String RPCUSER          = "RPCUSER";        // TODO: Change to what you have in bitcoin.conf file
-    private static final String RPCPASSWORD      = "RPCPASSWORD";    // TODO: Change to what you have in bitcoin.conf file
-    private static final String BACKUP_DIRECTORY = "/home/user";     // TODO: Change, but never ever to your Bitcoin data directory !!
+    private static final String RPCUSER          = "matsh";        // TODO: Change to what you have in bitcoin.conf file
+    private static final String RPCPASSWORD      = "korpen";    // TODO: Change to what you have in bitcoin.conf file
+    private static final String BACKUP_DIRECTORY = "/home/mats";     // TODO: Change, but never ever to your Bitcoin data directory !!
 
     private BitcoinClient bClient = new BitcoinClient("127.0.0.1", RPCUSER, RPCPASSWORD);
 
@@ -359,6 +359,54 @@ public class BitcoinTest {
         assertNotNull(txId);
         assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
         assertTrue(txId.length() > 30);    // A 256 bit hash
+    }
+
+    @Test
+    public void testListTransactions() {
+        List<TransactionInfo> txList = bClient.listTransactions(null, 100);     // Default account
+
+        assertNotNull(txList);
+
+        for (TransactionInfo txInfo : txList) {
+            System.out.println("txInfo: " + txInfo);
+
+            String category = txInfo.getCategory();
+
+            assertNotNull(category);
+
+            assertTrue(category.equals("generate") ||
+                       category.equals("send") ||
+                       category.equals("receive") ||
+                       category.equals("move"));
+
+            // Can't assert on amount, since it can be positive and negative
+
+            if (category.equals("send")) {
+                assertTrue(txInfo.getFee() >= 0.0);
+                // Can't assert on "message", since it may be null
+                // Can't assert on "to", since it may be null
+            }
+
+            if (category.equals("generate") ||
+                category.equals("send") ||
+                category.equals("receive")) {
+                assertTrue(txInfo.getConfirmations() > 0);
+                assertNotNull(txInfo.getTxId());
+                assertTrue(txInfo.getTxId().length() > 0);
+            }
+
+            if (category.equals("move")) {
+                // Can't assert on "otheraccount" since it may be null (default account)
+            }
+        }
+
+        List<TransactionInfo> txList2 = bClient.listTransactions(null);     // Default account
+
+        assertTrue(txList2.size() <= 10);
+
+        List<TransactionInfo> txList3 = bClient.listTransactions();         // Default account
+
+        assertTrue(txList3.size() <= 10);
     }
 
     @Test

@@ -45,6 +45,14 @@ import ru.paradoxs.bitcoin.client.exceptions.BitcoinClientException;
 public class BitcoinClient {
     private HttpSession session = null;
 
+    /**
+     * Creates a BitcoinClient
+     *
+     * @param host the host machine where there's an executing bitcoind server
+     * @param login the username to access the bitcoind server
+     * @param password the password to access the bitcoind server
+     * @param port the port number to the bitcoind server
+     */
     public BitcoinClient(String host, String login, String password, int port) {
         try {
             Credentials credentials = new UsernamePasswordCredentials(login, password);
@@ -55,6 +63,13 @@ public class BitcoinClient {
         }
     }
 
+    /**
+     * Creates a BitcoinClient with the default 8332 port number
+     *
+     * @param host the host machine where there's an executing bitcoind server
+     * @param login the username to access the bitcoind server
+     * @param password the password to access the bitcoind server
+     */
     public BitcoinClient(String host, String login, String password) {
         this(host, login, password, 8332);
     }
@@ -63,7 +78,7 @@ public class BitcoinClient {
      * Returns the list of addresses with the given label
      *
      * @param label Name of label
-     * @return list of addresses
+     * @return list of addresses for that label
      * @deprecated Use #getAddressesByAccount(String) instead
      */
     @Deprecated
@@ -90,7 +105,7 @@ public class BitcoinClient {
     /**
      * Returns the list of addresses for the given account
      *
-     * @param account Name of account, if null or empty it means the default account
+     * @param account name of account, if null or empty it means the default account
      * @return list of addresses for the given account
      * @since 0.3.18
      */
@@ -301,6 +316,7 @@ public class BitcoinClient {
     /**
      * Returns the label associated with the given address
      *
+     * @param address the address we want the label for
      * @return the label associated with a certain address
      * @deprecated Use #getAccount(String) instead
      */
@@ -339,8 +355,8 @@ public class BitcoinClient {
     /**
      * Sets the label associated with the given address
      *
-     * @param address address
-     * @param label if label is null then label remove
+     * @param address the address we want to set a label for
+     * @param label if null then label remove
      * @deprecated Use #setAccountForAddress(String, String) instead
      */
     @Deprecated
@@ -357,8 +373,8 @@ public class BitcoinClient {
     /**
      * Sets the account associated with the given address, or removes the address if the account is null
      *
-     * @param address address to be added or removed
-     * @param account if account is null then address is removed
+     * @param address the address to be added or removed
+     * @param account if null then address is removed
      * @since 0.3.18
      */
     public void setAccountForAddress(String address, String account) {
@@ -421,6 +437,8 @@ public class BitcoinClient {
     /**
      * Returns the total amount received by bitcoinaddress in transactions
      *
+     * @param address the address we want to know the received amount for
+     * @param minimumConfirmations the minimum number of confirmations for a transaction to count
      * @return total amount received
      */
     public double getReceivedByAddress(String address, long minimumConfirmations) {
@@ -438,6 +456,8 @@ public class BitcoinClient {
     /**
      * Returns the total amount received by addresses with label in transactions
      *
+     * @param label the label we want to know the received amount for
+     * @param minimumConfirmations the minimum number of confirmations for a transaction to count
      * @return total amount received
      * @deprecated Use #getReceivedByAccount(String, long) instead
      */
@@ -592,6 +612,94 @@ public class BitcoinClient {
     }
 
     /**
+     * Returns a list of at most <code>count</code> number of the last transactions for an account
+     *
+     * @param account the account related to the transactions, the default account if null or empty
+     * @param count the maximum number of transactions returned, must be > 0
+     * @return a list of at most <code>count</code> number of the last transactions for an account
+     * @since 0.3.18
+     */
+    public List<TransactionInfo> listTransactions(String account, int count) {
+        if (account == null) {
+            account = "";
+        }
+
+        if (count < 0) {
+            throw new BitcoinClientException("count must be > 0");
+        }
+
+        try {
+            JSONArray parameters = new JSONArray().put(account).put(count);
+            JSONObject request = createRequest("listtransactions", parameters);
+            JSONObject response = session.sendAndReceive(request);
+            JSONArray result = response.getJSONArray("result");
+            int size = result.length();
+
+            List<TransactionInfo> list = new ArrayList<TransactionInfo>(size);
+
+            for (int i = 0; i < size; i++) {
+                TransactionInfo info = new TransactionInfo();
+                JSONObject jObject = result.getJSONObject(i);
+
+                info.setCategory(jObject.getString("category"));
+                info.setAmount(jObject.getDouble("amount"));
+
+                if (info.getCategory().equals("send")) {
+                    info.setFee(jObject.getDouble("fee"));
+
+                    if (!jObject.isNull("message")) {
+                        info.setMessage(jObject.getString("message"));
+                    }
+
+                    if (!jObject.isNull("to")) {
+                        info.setTo(jObject.getString("to"));
+                    }
+                }
+
+                if (info.getCategory().equals("generate") ||
+                    info.getCategory().equals("send") ||
+                    info.getCategory().equals("receive")) {
+                    info.setConfirmations(jObject.getLong("confirmations"));
+                    info.setTxId(jObject.getString("txid"));
+                }
+
+                if (info.getCategory().equals("move")) {
+                    if (!jObject.isNull("otheraccount")) {
+                        info.setOtheraccount(jObject.getString("otheraccount"));
+                    }
+                }
+
+                list.add(info);
+            }
+
+            return list;
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting transactions for account: " + account, e);
+        }
+    }
+
+    /**
+     * Returns a list of at most 10 of the last transactions for an account
+     *
+     * @param account the account related to the transactions
+     * @return a list of at most 10 of the last transactions for an account
+     * @since 0.3.18
+     */
+    public List<TransactionInfo> listTransactions(String account) {
+        return listTransactions(account, 10);
+    }
+
+    /**
+     * Returns a list of at most 10 of the last transactions for the default account
+     *
+     * @return a list of at most 10 of the last transactions for the default account
+     * @since 0.3.18
+     */
+    public List<TransactionInfo> listTransactions() {
+        return listTransactions("", 10);
+    }
+
+    /**
      * Sends amount from the server's available balance to bitcoinaddress.
      * Amount is a real and is rounded to the nearest 0.01
      *
@@ -636,6 +744,8 @@ public class BitcoinClient {
 
     /**
      * Validates a Bitcoin address
+     *
+     * @param address the address we want to validate
      */
     public ValidatedAddressInfo validateAddress(String address) {
         try {
@@ -659,6 +769,11 @@ public class BitcoinClient {
         }
     }
 
+    /**
+     * Copies the wallet.dat file to a backup destination
+     *
+     * @param destination the directory we wish to backup the wallet to
+     */
     public void backupWallet(String destination) {
         try {
             JSONArray parameters = new JSONArray().put(destination);
