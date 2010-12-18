@@ -789,6 +789,49 @@ public class BitcoinClient {
         }
     }
 
+    /**
+     * Moves Bitcoins from one account to another on the same Bitcoin client.
+     * This method will fail if there is less than amount Bitcoins with minimumConfirmations
+     * confirmations in the fromAccount's balance. Returns transaction ID on success.
+     *
+     * @param fromAccount the account we wish to move from, the default account if null or empty string
+     * @param toAccount the account we wish to move to, the default account if null or empty string
+     * @param amount the amount we wish to move, rounded to the nearest 0.01
+     * @param minimumConfirmations minimum number of confirmations for a transaction to count
+     * @param comment a comment for this move, can be null
+     * @return the transaction ID for this move of Bitcoins
+     * @since 0.3.18
+     */
+    public boolean move(String fromAccount, String toAccount, double amount, int minimumConfirmations, String comment) {
+        if (fromAccount == null) {
+            fromAccount = "";
+        }
+
+        if (toAccount == null) {
+            toAccount = "";
+        }
+
+        if (minimumConfirmations <= 0) {
+            throw new BitcoinClientException("minimumConfirmations must be > 0");
+        }
+
+        amount = checkAndRound(amount);
+
+        try {
+            JSONArray parameters = new JSONArray().put(fromAccount).put(toAccount).put(amount)
+                                                  .put(minimumConfirmations).put(comment);
+            JSONObject request = createRequest("move", parameters);
+            JSONObject response = session.sendAndReceive(request);
+
+System.out.println("response = " + response);
+
+            return response.getBoolean("result");
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when moving " + amount + " bitcoins from account: '" +
+                                             fromAccount + "' to account: '" + toAccount + "'", e);
+        }
+    }
+
     private double checkAndRound(double amount) {
         if (amount < 0.01) {
             throw new BitcoinClientException("The current machinery doesn't support transactions of less than 0.01 Bitcoins");

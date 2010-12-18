@@ -146,7 +146,11 @@ public class BitcoinTest {
 
         System.out.println("serverInfo = " + serverInfo);
 
-        assertTrue(serverInfo != null);
+        assertNotNull(serverInfo);
+        assertNotNull(serverInfo.getVersion());
+        assertTrue(serverInfo.getBalance() > 0.0);
+        assertTrue(serverInfo.getBlocks() > 90000);
+        assertTrue(serverInfo.getDifficulty() > 1000);
     }
 
     @Test
@@ -387,6 +391,25 @@ public class BitcoinTest {
         assertEquals(-0.01, info.getAmount(), 0.00000001);
         assertTrue(info.getFee() == 0.0);
         assertEquals(message, info.getMessage());
+    }
+
+    @Test
+    public void testMove() {
+        String stevesAccountName = "Steve's account";
+        String message = "Use it wisely, Dude";
+        bClient.getAccountAddress(stevesAccountName);   // Creates "Steve's account"
+
+        // Move 0.01 to Steve's account
+        boolean success1 = bClient.move(null, stevesAccountName, 0.01d, 10, message);
+        assertTrue(success1);
+
+        // Move the money back to the default account
+        boolean success2 = bClient.move(stevesAccountName, null, 0.01d, 10, message);
+        assertTrue(success2);
+
+        // Check that the money is 0 again
+        double stevesBalance = bClient.getBalance(stevesAccountName);
+        assertEquals(0.0d, stevesBalance, 0.00000001d);
     }
 
     @Test
