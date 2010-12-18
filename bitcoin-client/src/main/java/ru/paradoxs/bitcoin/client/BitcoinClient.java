@@ -727,6 +727,46 @@ public class BitcoinClient {
     }
 
     /**
+     * Return work information.
+     *
+     * @return work information
+     */
+    public WorkInfo getWork() {
+        try {
+            JSONObject request = createRequest("getwork");
+            JSONObject response = session.sendAndReceive(request);
+            JSONObject result = (JSONObject) response.get("result");
+
+            WorkInfo info = new WorkInfo();
+            info.setMidstate(result.getString("midstate"));
+            info.setData(result.getString("data"));
+            info.setHash1(result.getString("hash1"));
+            info.setTarget(result.getString("target"));
+
+            return info;
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when getting work info", e);
+        }
+    }
+
+    /**
+     * Tries to solve the block and returns true if it was successful
+     *
+     * @return true if the block was solved, false otherwise
+     */
+    public boolean getWork(String block) {
+        try {
+            JSONArray parameters = new JSONArray().put(block);
+            JSONObject request = createRequest("getwork", parameters);
+            JSONObject response = session.sendAndReceive(request);
+
+            return response.getBoolean("result");
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when trying to solve a block with getwork", e);
+        }
+    }
+
+    /**
      * Sends amount from the server's available balance to bitcoinAddress.
      *
      * TODO: Add comment-to
@@ -822,8 +862,6 @@ public class BitcoinClient {
                                                   .put(minimumConfirmations).put(comment);
             JSONObject request = createRequest("move", parameters);
             JSONObject response = session.sendAndReceive(request);
-
-System.out.println("response = " + response);
 
             return response.getBoolean("result");
         } catch (JSONException e) {

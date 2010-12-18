@@ -358,6 +358,21 @@ public class BitcoinTest {
     }
 
     @Test
+    public void testGetWork() {
+        WorkInfo info = bClient.getWork();
+
+        assertNotNull(info);
+        assertNotNull(info.getMidstate());
+        assertNotNull(info.getData());
+        assertNotNull(info.getHash1());
+        assertNotNull(info.getTarget());
+
+        boolean success = bClient.getWork(info.getData());
+
+        assertFalse(success);     // Not likely in such a short time
+    }
+
+    @Test
     public void testSendToAddress() {
         String message = "Use it wisely, EFF";
         String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, message);
