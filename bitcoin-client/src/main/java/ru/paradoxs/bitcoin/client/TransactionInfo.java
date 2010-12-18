@@ -15,9 +15,17 @@
  */
 package ru.paradoxs.bitcoin.client;
 
+/**
+ * Holds transaction information, returned from both #getTransaction(String)
+ * and listTransactions(String, int). In the first case, the category may be
+ * null.
+ *
+ * @author mats@henricson.se
+ * @since 0.3.18
+ */
 public class TransactionInfo {
-    private String category;     // Can be generate, send, receive, or move
-    private double amount;       // Can be positive and negative
+    private String category;     // Can be null, "generate", "send", "receive", or "move"
+    private double amount;       // Can be positive or negative
     private double fee;          // Only for send, can be 0.0
     private long confirmations;  // only for generate/send/receive
     private String txId;         // only for generate/send/receive

@@ -624,7 +624,7 @@ public class BitcoinClient {
             account = "";
         }
 
-        if (count < 0) {
+        if (count <= 0) {
             throw new BitcoinClientException("count must be > 0");
         }
 
@@ -672,40 +672,36 @@ public class BitcoinClient {
     private TransactionInfo parseTransactionInfoFromJson(JSONObject jObject) throws JSONException {
         TransactionInfo info = new TransactionInfo();
 
-        if (!jObject.isNull("category")) {
-            // TODO: https://github.com/gavinandresen/bitcoin-git/issues/issue/20
-            info.setCategory(jObject.getString("category"));
-        }
-        else {
-            info.setCategory("send");    // TODO: Hopefully true, just working around the bug above
-        }
-
         info.setAmount(jObject.getDouble("amount"));
 
-        if (info.getCategory().equals("send")) {
-            info.setFee(jObject.getDouble("fee"));
-
-            if (!jObject.isNull("message")) {
-                info.setMessage(jObject.getString("message"));
-            }
-
-            if (!jObject.isNull("to")) {
-                info.setTo(jObject.getString("to"));
-            }
+        if (!jObject.isNull("category")) {
+            info.setCategory(jObject.getString("category"));
         }
 
-        if (info.getCategory().equals("generate") ||
-            info.getCategory().equals("send") ||
-            info.getCategory().equals("receive")) {
+        if (!jObject.isNull("fee")) {
+            info.setFee(jObject.getDouble("fee"));
+        }
+
+        if (!jObject.isNull("message")) {
+            info.setMessage(jObject.getString("message"));
+        }
+
+        if (!jObject.isNull("to")) {
+            info.setTo(jObject.getString("to"));
+        }
+
+        if (!jObject.isNull("confirmations")) {
             info.setConfirmations(jObject.getLong("confirmations"));
+        }
+
+        if (!jObject.isNull("txid")) {
             info.setTxId(jObject.getString("txid"));
         }
 
-        if (info.getCategory().equals("move")) {
-            if (!jObject.isNull("otheraccount")) {
-                info.setOtherAccount(jObject.getString("otheraccount"));
-            }
+        if (!jObject.isNull("otheraccount")) {
+            info.setOtherAccount(jObject.getString("otheraccount"));
         }
+
         return info;
     }
 
@@ -731,15 +727,69 @@ public class BitcoinClient {
     }
 
     /**
-     * Sends amount from the server's available balance to bitcoinaddress.
-     * Amount is a real and is rounded to the nearest 0.01
+     * Sends amount from the server's available balance to bitcoinAddress.
      *
-     * @param address the address to which we want to send bitcoins
-     * @param amount the amount we wish to send
+     * TODO: Add comment-to
+     *
+     * @param bitcoinAddress the bitcoinAddress to which we want to send bitcoins
+     * @param amount the amount we wish to send, rounded to the nearest 0.01
      * @param comment a comment for this transfer, can be null
      * @return the transaction ID for this transfer of Bitcoins
      */
-    public String sendToAddress(String address, double amount, String comment) {
+    public String sendToAddress(String bitcoinAddress, double amount, String comment) {
+        amount = checkAndRound(amount);
+
+        try {
+            JSONArray parameters = new JSONArray().put(bitcoinAddress).put(amount).put(comment);
+            JSONObject request = createRequest("sendtoaddress", parameters);
+            JSONObject response = session.sendAndReceive(request);
+
+            return response.getString("result");
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when sending bitcoins", e);
+        }
+    }
+
+    /**
+     * Sends amount from account's balance to bitcoinAddress.
+     * This method will fail if there is less than amount Bitcoins with minimumConfirmations
+     * confirmations in the account's balance (unless account is the empty-string-named default
+     * account; it behaves like the #sendToAddress() method). Returns transaction ID on success.
+     *
+     * @param account the account we wish to send from, the default account if null or empty string
+     * @param bitcoinAddress the address to which we want to send Bitcoins
+     * @param amount the amount we wish to send, rounded to the nearest 0.01
+     * @param minimumConfirmations minimum number of confirmations for a transaction to count
+     * @param comment a comment for this transfer, can be null
+     * @param commentTo a comment to this transfer, can be null
+     * @return the transaction ID for this transfer of Bitcoins
+     * @since 0.3.18
+     */
+    public String sendFrom(String account, String bitcoinAddress, double amount, int minimumConfirmations,
+                           String comment, String commentTo) {
+        if (account == null) {
+            account = "";
+        }
+
+        if (minimumConfirmations <= 0) {
+            throw new BitcoinClientException("minimumConfirmations must be > 0");
+        }
+
+        amount = checkAndRound(amount);
+
+        try {
+            JSONArray parameters = new JSONArray().put(account).put(bitcoinAddress).put(amount)
+                                                  .put(minimumConfirmations).put(comment).put(commentTo);
+            JSONObject request = createRequest("sendfrom", parameters);
+            JSONObject response = session.sendAndReceive(request);
+
+            return response.getString("result");
+        } catch (JSONException e) {
+            throw new BitcoinClientException("Exception when sending bitcoins with sendFrom()", e);
+        }
+    }
+
+    private double checkAndRound(double amount) {
         if (amount < 0.01) {
             throw new BitcoinClientException("The current machinery doesn't support transactions of less than 0.01 Bitcoins");
         }
@@ -749,16 +799,7 @@ public class BitcoinClient {
         }
 
         amount = roundToTwoDecimals(amount);
-
-        try {
-            JSONArray parameters = new JSONArray().put(address).put(amount).put(comment);
-            JSONObject request = createRequest("sendtoaddress", parameters);
-            JSONObject response = session.sendAndReceive(request);
-
-            return response.getString("result");
-        } catch (JSONException e) {
-            throw new BitcoinClientException("Exception when sending bitcoins", e);
-        }
+        return amount;
     }
 
     /**
