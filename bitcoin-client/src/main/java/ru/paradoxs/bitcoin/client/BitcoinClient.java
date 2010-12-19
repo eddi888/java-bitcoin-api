@@ -769,18 +769,18 @@ public class BitcoinClient {
     /**
      * Sends amount from the server's available balance to bitcoinAddress.
      *
-     * TODO: Add comment-to
-     *
      * @param bitcoinAddress the bitcoinAddress to which we want to send bitcoins
      * @param amount the amount we wish to send, rounded to the nearest 0.01
      * @param comment a comment for this transfer, can be null
+     * @param commentTo a comment to this transfer, can be null
      * @return the transaction ID for this transfer of Bitcoins
      */
-    public String sendToAddress(String bitcoinAddress, double amount, String comment) {
+    public String sendToAddress(String bitcoinAddress, double amount, String comment, String commentTo) {
         amount = checkAndRound(amount);
 
         try {
-            JSONArray parameters = new JSONArray().put(bitcoinAddress).put(amount).put(comment);
+            JSONArray parameters = new JSONArray().put(bitcoinAddress).put(amount)
+                                                  .put(comment).put(commentTo);
             JSONObject request = createRequest("sendtoaddress", parameters);
             JSONObject response = session.sendAndReceive(request);
 
@@ -940,9 +940,8 @@ public class BitcoinClient {
     /**
      * Rounds a double to the nearest dwo decimals, rounding UP.
      * Not proud of this code, but it works.
-     * The function is public static, so I can test it in isolation.
      */
-    public static double roundToTwoDecimals(double amount) {
+    protected static double roundToTwoDecimals(double amount) {
         BigDecimal amountTimes100 = new BigDecimal(amount * 100 + 0.5);
         BigDecimal roundedAmountTimes100 = new BigDecimal(amountTimes100.intValue());
         BigDecimal roundedAmount = roundedAmountTimes100.divide(new BigDecimal(100.0));

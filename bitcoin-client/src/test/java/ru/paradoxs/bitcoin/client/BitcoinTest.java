@@ -1,4 +1,4 @@
-/**
+package ru.paradoxs.bitcoin.client; /**
  * Copyright 2010 Mats Henricson (mats@henricson.se)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@
  */
 
 import org.junit.Test;
-import ru.paradoxs.bitcoin.client.*;
 
 import java.io.File;
 import java.util.List;
@@ -375,7 +374,8 @@ public class BitcoinTest {
     @Test
     public void testSendToAddress() {
         String message = "Use it wisely, EFF";
-        String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, message);
+        String messageTo = "Use it wisely";
+        String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, message, messageTo);
         assertNotNull(txId);
         assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
         assertTrue(txId.length() > 30);    // A 256 bit hash
@@ -388,6 +388,7 @@ public class BitcoinTest {
         assertEquals(-0.01, info.getAmount(), 0.00000001);
         assertTrue(info.getFee() == 0.0);
         assertEquals(message, info.getMessage());
+        assertEquals(messageTo, info.getTo());
     }
 
     @Test
