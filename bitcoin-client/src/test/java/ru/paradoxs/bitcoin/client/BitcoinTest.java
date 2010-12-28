@@ -356,9 +356,12 @@ public class BitcoinTest {
         assertFalse(bogusInfo.getIsValid());
     }
 
+    /**
+     * This test is somewhat flakey, since it fails on occation.
+     */
     @Test
     public void testGetWork() {
-        WorkInfo info = bClient.getWork();
+        WorkInfo info = bClient.getWork();     // This bombs sometimes, and I don't know why
 
         assertNotNull(info);
         assertNotNull(info.getMidstate());
@@ -374,7 +377,7 @@ public class BitcoinTest {
     @Test
     public void testSendToAddress() {
         String message = "Use it wisely, EFF";
-        String messageTo = "Use it wisely";
+        String messageTo = "EFF";
         String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, message, messageTo);
         assertNotNull(txId);
         assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
@@ -394,7 +397,8 @@ public class BitcoinTest {
     @Test
     public void testSendFrom() {
         String message = "Use it wisely, EFF";
-        String txId = bClient.sendFrom(null, EFF_DONATION_ADDRESS, 0.01d, 10, message, null);
+        String toMessage = "EFF";
+        String txId = bClient.sendFrom(null, EFF_DONATION_ADDRESS, 0.01d, 10, message, toMessage);
         assertNotNull(txId);
         assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
         assertTrue(txId.length() > 30);    // A 256 bit hash
@@ -407,6 +411,7 @@ public class BitcoinTest {
         assertEquals(-0.01, info.getAmount(), 0.00000001);
         assertTrue(info.getFee() == 0.0);
         assertEquals(message, info.getMessage());
+        assertEquals(toMessage, info.getTo());
     }
 
     @Test
