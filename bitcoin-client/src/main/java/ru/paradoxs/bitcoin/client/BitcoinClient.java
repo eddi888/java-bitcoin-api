@@ -701,6 +701,10 @@ public class BitcoinClient {
         if (!jObject.isNull("otheraccount")) {
             info.setOtherAccount(jObject.getString("otheraccount"));
         }
+        
+        if (!jObject.isNull("time")) {
+            info.setTime(jObject.getLong("time"));
+        }
 
         return info;
     }

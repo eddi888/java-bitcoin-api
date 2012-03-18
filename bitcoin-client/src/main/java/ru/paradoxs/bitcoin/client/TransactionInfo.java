@@ -32,6 +32,7 @@ public class TransactionInfo {
     private String otherAccount; // only for move
     private String message;      // only for send, can be null
     private String to;           // only for send, can be null
+    private long time;
 
     public String getCategory() {
         return category;
@@ -96,12 +97,21 @@ public class TransactionInfo {
     public void setTo(String to) {
         this.to = to;
     }
+    
+    public long getTime() {
+		return time;
+	}
 
-    @Override
+	public void setTime(long time) {
+		this.time = time;
+	}
+
+	@Override
     public String toString() {
         return "TransactionInfo{" +
                 "category='" + category + '\'' +
                 ", amount=" + amount +
+                ", time=" + time +
                 ", fee=" + fee +
                 ", confirmations=" + confirmations +
                 ", txId='" + txId + '\'' +
