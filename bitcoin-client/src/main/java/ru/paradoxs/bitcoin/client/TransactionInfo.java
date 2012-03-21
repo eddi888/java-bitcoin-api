@@ -15,6 +15,8 @@
  */
 package ru.paradoxs.bitcoin.client;
 
+import java.math.BigDecimal;
+
 /**
  * Holds transaction information, returned from both #getTransaction(String)
  * and listTransactions(String, int). In the first case, the category may be
@@ -25,8 +27,8 @@ package ru.paradoxs.bitcoin.client;
  */
 public class TransactionInfo {
     private String category;     // Can be null, "generate", "send", "receive", or "move"
-    private double amount;       // Can be positive or negative
-    private double fee;          // Only for send, can be 0.0
+    private BigDecimal amount;       // Can be positive or negative
+    private BigDecimal fee;          // Only for send, can be 0.0
     private long confirmations;  // only for generate/send/receive
     private String txId;         // only for generate/send/receive
     private String otherAccount; // only for move
@@ -42,19 +44,19 @@ public class TransactionInfo {
         this.category = category;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
-    public double getFee() {
+    public BigDecimal getFee() {
         return fee;
     }
 
-    public void setFee(double fee) {
+    public void setFee(BigDecimal fee) {
         this.fee = fee;
     }
 

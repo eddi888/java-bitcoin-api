@@ -15,33 +15,35 @@
  */
 package ru.paradoxs.bitcoin.client;
 
+import java.math.BigDecimal;
+
 /**
  * @see <a href="http://www.bitcoin.org/wiki/doku.php?id=api">Bitcoin API</a>
  * @author paradoxs
  */
 public class ServerInfo {
     private String version = "";
-    private double balance = 0;
+    private BigDecimal balance = BigDecimal.ZERO;
     private long blocks = 0;
     private int connections = 0;
     private boolean isGenerateCoins = false;
     private int usedCPUs = -1;
-    private double difficulty = 0;
+    private BigDecimal difficulty = BigDecimal.ZERO;
     private long HashesPerSecond = 0;
 
     public String getVersion() {
         return version;
-    }    
+    }
 
     public void setVersion(String version) {
         this.version = version;
     }
 
-    public double getBalance() {
+    public BigDecimal getBalance() {
         return balance;
-    }    
+    }
 
-    public void setBalance(double balance) {
+    public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
 
@@ -77,11 +79,11 @@ public class ServerInfo {
         this.usedCPUs = usedCPUs;
     }
 
-    public double getDifficulty() {
+    public BigDecimal getDifficulty() {
         return difficulty;
     }
 
-    public void setDifficulty(double difficulty) {
+    public void setDifficulty(BigDecimal difficulty) {
         this.difficulty = difficulty;
     }
 

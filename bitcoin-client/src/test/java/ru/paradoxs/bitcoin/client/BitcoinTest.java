@@ -14,13 +14,17 @@ package ru.paradoxs.bitcoin.client; /**
  *    limitations under the License.
  */
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 /**
  * A number of unit tests against a local Bitcoin server.
@@ -36,15 +40,15 @@ public class BitcoinTest {
     private static final String RPCPASSWORD      = "RPCPASSWORD";    // TODO: Change to what you have in bitcoin.conf file
     private static final String BACKUP_DIRECTORY = "/home/user";     // TODO: Change, but never ever to your Bitcoin data directory !!
 
-    private BitcoinClient bClient = new BitcoinClient("127.0.0.1", RPCUSER, RPCPASSWORD);
+    private final BitcoinClient bClient = new BitcoinClient("127.0.0.1", RPCUSER, RPCPASSWORD);
 
     @Test
     public void testGetBalance() {
-        double balance = bClient.getBalance();
+        BigDecimal balance = bClient.getBalance();
 
         System.out.println("balance = " + balance);
 
-        assertTrue(balance >= 0.0);
+        assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
     }
 
     @Test
@@ -52,11 +56,11 @@ public class BitcoinTest {
         String accountName = "anAccountName";
         bClient.getAccountAddress(accountName);        // This creates an account, if it doesn't exist
 
-        double balance = bClient.getBalance(accountName);
+        BigDecimal balance = bClient.getBalance(accountName);
 
         System.out.println("balance = " + balance);
 
-        assertTrue(balance >= 0.0);
+        assertTrue(balance.compareTo(BigDecimal.ZERO) >= 0);
     }
 
     @Test
@@ -88,11 +92,11 @@ public class BitcoinTest {
 
     @Test
     public void testGetDifficulty() {
-        double difficulty = bClient.getDifficulty();
+        BigDecimal difficulty = bClient.getDifficulty();
 
         System.out.println("difficulty = " + difficulty);
 
-        assertTrue(difficulty > 0);
+        assertTrue(difficulty.compareTo(BigDecimal.ZERO) > 0);
     }
 
     @Test
@@ -147,9 +151,9 @@ public class BitcoinTest {
 
         assertNotNull(serverInfo);
         assertNotNull(serverInfo.getVersion());
-        assertTrue(serverInfo.getBalance() > 0.0);
-        assertTrue(serverInfo.getBlocks() > 90000);
-        assertTrue(serverInfo.getDifficulty() > 1000);
+        assertTrue(serverInfo.getBalance().compareTo(BigDecimal.ZERO) >= 0);
+        assertTrue(serverInfo.getBlocks() > 40000);
+        assertTrue(serverInfo.getDifficulty().compareTo(new BigDecimal(35)) > 0);
     }
 
     @Test
@@ -234,11 +238,11 @@ public class BitcoinTest {
 
         for (AddressInfo ai : addressInfos) {
             String address = ai.getAddress();
-            double received = bClient.getReceivedByAddress(address, 1);
+            BigDecimal received = bClient.getReceivedByAddress(address, 1);
 
             System.out.println("received = " + received);
 
-            assertTrue(received >= 0.0);
+            assertTrue(received.compareTo(BigDecimal.ZERO) >= 0);
         }
     }
 
@@ -248,15 +252,15 @@ public class BitcoinTest {
 
         for (LabelInfo li : labelInfos) {
             String label = li.getLabel();
-            double amount = li.getAmount();
+            BigDecimal amount = li.getAmount();
             long confirmations = li.getConfirmations();
 
-            assertTrue(amount > 0);
+            assertTrue(amount.compareTo(BigDecimal.ZERO) > 0);
             assertTrue(confirmations > 0);
 
             double received = bClient.getReceivedByLabel(label, 1);
 
-            assertEquals(amount, received, 0.001);
+            assertEquals(amount, received);
 
             System.out.println("received = " + received);
         }
@@ -268,15 +272,15 @@ public class BitcoinTest {
 
         for (AccountInfo ai : accountInfos) {
             String account = ai.getAccount();
-            double amount = ai.getAmount();
+            BigDecimal amount = ai.getAmount();
             long confirmations = ai.getConfirmations();
 
-            assertTrue(amount > 0);
+            assertTrue(amount.compareTo(BigDecimal.ZERO) > 0);
             assertTrue(confirmations > 0);
 
-            double received = bClient.getReceivedByAccount(account, 1);
+            BigDecimal received = bClient.getReceivedByAccount(account, 1);
 
-            assertEquals(amount, received, 0.001);
+            assertEquals(amount, received);
 
             System.out.println("received = " + received);
         }
@@ -378,7 +382,7 @@ public class BitcoinTest {
     public void testSendToAddress() {
         String message = "Use it wisely, EFF";
         String messageTo = "EFF";
-        String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, 0.01d, message, messageTo);
+        String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, new BigDecimal("0.01"), message, messageTo);
         assertNotNull(txId);
         assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
         assertTrue(txId.length() > 30);    // A 256 bit hash
@@ -388,8 +392,8 @@ public class BitcoinTest {
         assertNotNull(info);
         assertNull(info.getCategory());    // https://github.com/gavinandresen/bitcoin-git/issues/issue/20
         assertEquals(txId, info.getTxId());
-        assertEquals(-0.01, info.getAmount(), 0.00000001);
-        assertTrue(info.getFee() == 0.0);
+        assertEquals(new BigDecimal("-0.01"), info.getAmount());
+        assertTrue(info.getFee().compareTo(BigDecimal.ZERO) == 0);
         assertEquals(message, info.getMessage());
         assertEquals(messageTo, info.getTo());
     }
@@ -398,7 +402,7 @@ public class BitcoinTest {
     public void testSendFrom() {
         String message = "Use it wisely, EFF";
         String toMessage = "EFF";
-        String txId = bClient.sendFrom(null, EFF_DONATION_ADDRESS, 0.01d, 10, message, toMessage);
+        String txId = bClient.sendFrom(null, EFF_DONATION_ADDRESS, new BigDecimal("0.01"), 10, message, toMessage);
         assertNotNull(txId);
         assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
         assertTrue(txId.length() > 30);    // A 256 bit hash
@@ -408,8 +412,8 @@ public class BitcoinTest {
         assertNotNull(info);
         assertNull(info.getCategory());    // https://github.com/gavinandresen/bitcoin-git/issues/issue/20
         assertEquals(txId, info.getTxId());
-        assertEquals(-0.01, info.getAmount(), 0.00000001);
-        assertTrue(info.getFee() == 0.0);
+        assertEquals(new BigDecimal("-0.01"), info.getAmount());
+        assertTrue(info.getFee().compareTo(BigDecimal.ZERO) == 0);
         assertEquals(message, info.getMessage());
         assertEquals(toMessage, info.getTo());
     }
@@ -421,16 +425,16 @@ public class BitcoinTest {
         bClient.getAccountAddress(stevesAccountName);   // Creates "Steve's account"
 
         // Move 0.01 to Steve's account
-        boolean success1 = bClient.move(null, stevesAccountName, 0.01d, 10, message);
+        boolean success1 = bClient.move(null, stevesAccountName, new BigDecimal("0.01"), 10, message);
         assertTrue(success1);
 
         // Move the money back to the default account
-        boolean success2 = bClient.move(stevesAccountName, null, 0.01d, 10, message);
+        boolean success2 = bClient.move(stevesAccountName, null, new BigDecimal("0.01"), 10, message);
         assertTrue(success2);
 
         // Check that the money is 0 again
-        double stevesBalance = bClient.getBalance(stevesAccountName);
-        assertEquals(0.0d, stevesBalance, 0.00000001d);
+        BigDecimal stevesBalance = bClient.getBalance(stevesAccountName);
+        assertEquals(new BigDecimal("0.0"), stevesBalance);
     }
 
     @Test
@@ -454,7 +458,7 @@ public class BitcoinTest {
             // Can't assert on amount, since it can be positive and negative
 
             if (category.equals("send")) {
-                assertTrue(txInfo.getFee() >= 0.0);
+                assertTrue(txInfo.getFee().compareTo(BigDecimal.ZERO) >= 0);
                 // Can't assert on "message", since it may be null
                 // Can't assert on "to", since it may be null
             }
@@ -499,10 +503,10 @@ public class BitcoinTest {
 
     @Test
     public void testRounding() {
-        assertEquals(0.5,  BitcoinClient.roundToTwoDecimals(0.5),    0.00000000001);
-        assertEquals(0.06, BitcoinClient.roundToTwoDecimals(0.055),  0.00000000001);
-        assertEquals(1.11, BitcoinClient.roundToTwoDecimals(1.114),  0.00000000001);
-        assertEquals(1.12, BitcoinClient.roundToTwoDecimals(1.115),  0.00000000001);
-        assertEquals(0.01, BitcoinClient.roundToTwoDecimals(0.0149), 0.00000000001);
+        assertEquals(new BigDecimal("0.5"),  BitcoinClient.roundToTwoDecimals(new BigDecimal("0.5")));
+        assertEquals(new BigDecimal("0.06"), BitcoinClient.roundToTwoDecimals(new BigDecimal("0.055")));
+        assertEquals(new BigDecimal("1.11"), BitcoinClient.roundToTwoDecimals(new BigDecimal("1.114")));
+        assertEquals(new BigDecimal("1.12"), BitcoinClient.roundToTwoDecimals(new BigDecimal("1.115")));
+        assertEquals(new BigDecimal("0.01"), BitcoinClient.roundToTwoDecimals(new BigDecimal("0.0149")));
     }
 }

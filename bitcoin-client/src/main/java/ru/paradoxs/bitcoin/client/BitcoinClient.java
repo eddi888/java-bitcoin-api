@@ -24,11 +24,12 @@ import java.util.UUID;
 
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import ru.paradoxs.bitcoin.http.HttpSession;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import ru.paradoxs.bitcoin.client.exceptions.BitcoinClientException;
+import ru.paradoxs.bitcoin.http.HttpSession;
 
 /**
  * A Java API for accessing a Bitcoin server.
@@ -36,13 +37,19 @@ import ru.paradoxs.bitcoin.client.exceptions.BitcoinClientException;
  * PLEASE NOTE: It doesn't use https for the communication, just http, but access to the Bitcoin server is
  * only allowed from localhost, so it shouldn't really matter.
  *
- * TODO: The API should really use BigDecimal instead of doubles.
- *
  * @see <a href="http://www.bitcoin.org/wiki/doku.php?id=api">Bitcoin API</a>
  * @author paradoxs
  * @author mats@henricson.se
  */
 public class BitcoinClient {
+
+    private static BigDecimal getBigDecimal(JSONObject jsonObject, String key)
+            throws JSONException {
+        String string = jsonObject.getString(key);
+        BigDecimal bigDecimal = new BigDecimal(string);
+        return bigDecimal;
+    }
+
     private HttpSession session = null;
 
     /**
@@ -138,12 +145,12 @@ public class BitcoinClient {
      *
      * @return the balance for the default account
      */
-    public double getBalance() {
+    public BigDecimal getBalance() {
         try {
             JSONObject request = createRequest("getbalance");
             JSONObject response = session.sendAndReceive(request);
 
-            return response.getDouble("result");
+            return getBigDecimal(response, "result");
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when getting balance", e);
         }
@@ -156,7 +163,7 @@ public class BitcoinClient {
      * @return the balance
      * @since 0.3.18
      */
-    public double getBalance(String account) {
+    public BigDecimal getBalance(String account) {
         if (account == null) {
             account = "";      // The default account
         }
@@ -166,7 +173,7 @@ public class BitcoinClient {
             JSONObject request = createRequest("getbalance", parameters);
             JSONObject response = session.sendAndReceive(request);
 
-            return response.getDouble("result");
+            return getBigDecimal(response, "result");
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when getting balance", e);
         }
@@ -175,7 +182,7 @@ public class BitcoinClient {
 
     /**
      * Returns the number of blocks in the longest block chain
-     * 
+     *
      * @return the number of blocks
      */
     public int getBlockCount() {
@@ -243,12 +250,12 @@ public class BitcoinClient {
      *
      * @return the current difficulty
      */
-    public double getDifficulty() {
+    public BigDecimal getDifficulty() {
         try {
             JSONObject request = createRequest("getdifficulty");
             JSONObject response = session.sendAndReceive(request);
 
-            return response.getDouble("result");
+            return getBigDecimal(response, "result");
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when getting the difficulty", e);
         }
@@ -298,14 +305,14 @@ public class BitcoinClient {
             JSONObject result = (JSONObject) response.get("result");
 
             ServerInfo info = new ServerInfo();
-            info.setBalance        (result.getDouble ("balance"));
+            info.setBalance        (getBigDecimal(result, "balance"));
             info.setBlocks         (result.getLong   ("blocks"));
             info.setConnections    (result.getInt    ("connections"));
-            info.setDifficulty     (result.getDouble ("difficulty"));
+            info.setDifficulty     (getBigDecimal(result, "difficulty"));
             info.setHashesPerSecond(result.getLong   ("hashespersec"));
             info.setIsGenerateCoins(result.getBoolean("generate"));
             info.setUsedCPUs       (result.getInt    ("genproclimit"));
-            info.setVersion        (result.getString ("version"));            
+            info.setVersion        (result.getString ("version"));
 
             return info;
         } catch (JSONException e) {
@@ -441,13 +448,13 @@ public class BitcoinClient {
      * @param minimumConfirmations the minimum number of confirmations for a transaction to count
      * @return total amount received
      */
-    public double getReceivedByAddress(String address, long minimumConfirmations) {
+    public BigDecimal getReceivedByAddress(String address, long minimumConfirmations) {
         try {
             JSONArray parameters = new JSONArray().put(address).put(minimumConfirmations);
             JSONObject request = createRequest("getreceivedbyaddress", parameters);
             JSONObject response = session.sendAndReceive(request);
 
-            return response.getDouble("result");
+            return getBigDecimal(response, "result");
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when getting the total amount received by bitcoinaddress", e);
         }
@@ -482,13 +489,13 @@ public class BitcoinClient {
      * @return total amount received for this account
      * @since 0.3.18
      */
-    public double getReceivedByAccount(String account, long minimumConfirmations) {
+    public BigDecimal getReceivedByAccount(String account, long minimumConfirmations) {
         try {
             JSONArray parameters = new JSONArray().put(account).put(minimumConfirmations);
             JSONObject request = createRequest("getreceivedbyaccount", parameters);
             JSONObject response = session.sendAndReceive(request);
 
-            return response.getDouble("result");
+            return getBigDecimal(response, "result");
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when getting the total amount received for account: " + account, e);
         }
@@ -533,7 +540,7 @@ public class BitcoinClient {
                 JSONObject jObject = result.getJSONObject(i);
                 info.setAddress(jObject.getString("address"));
                 info.setAccount(jObject.getString("account"));
-                info.setAmount(jObject.getDouble("amount"));
+                info.setAmount(getBigDecimal(jObject, "amount"));
                 info.setConfirmations(jObject.getLong("confirmations"));
                 list.add(info);
             }
@@ -567,7 +574,7 @@ public class BitcoinClient {
                 LabelInfo info = new LabelInfo();
                 JSONObject jObject = result.getJSONObject(i);
                 info.setLabel        (jObject.getString("label"));
-                info.setAmount       (jObject.getDouble("amount"));
+                info.setAmount       (getBigDecimal(jObject, "amount"));
                 info.setConfirmations(jObject.getLong("confirmations"));
                 list.add(info);
             }
@@ -600,7 +607,7 @@ public class BitcoinClient {
                 AccountInfo info = new AccountInfo();
                 JSONObject jObject = result.getJSONObject(i);
                 info.setAccount      (jObject.getString("account"));
-                info.setAmount       (jObject.getDouble("amount"));
+                info.setAmount       (getBigDecimal(jObject, "amount"));
                 info.setConfirmations(jObject.getLong("confirmations"));
                 list.add(info);
             }
@@ -672,14 +679,14 @@ public class BitcoinClient {
     private TransactionInfo parseTransactionInfoFromJson(JSONObject jObject) throws JSONException {
         TransactionInfo info = new TransactionInfo();
 
-        info.setAmount(jObject.getDouble("amount"));
+        info.setAmount(getBigDecimal(jObject, "amount"));
 
         if (!jObject.isNull("category")) {
             info.setCategory(jObject.getString("category"));
         }
 
         if (!jObject.isNull("fee")) {
-            info.setFee(jObject.getDouble("fee"));
+            info.setFee(getBigDecimal(jObject, "fee"));
         }
 
         if (!jObject.isNull("message")) {
@@ -779,7 +786,7 @@ public class BitcoinClient {
      * @param commentTo a comment to this transfer, can be null
      * @return the transaction ID for this transfer of Bitcoins
      */
-    public String sendToAddress(String bitcoinAddress, double amount, String comment, String commentTo) {
+    public String sendToAddress(String bitcoinAddress, BigDecimal amount, String comment, String commentTo) {
         amount = checkAndRound(amount);
 
         try {
@@ -809,7 +816,7 @@ public class BitcoinClient {
      * @return the transaction ID for this transfer of Bitcoins
      * @since 0.3.18
      */
-    public String sendFrom(String account, String bitcoinAddress, double amount, int minimumConfirmations,
+    public String sendFrom(String account, String bitcoinAddress, BigDecimal amount, int minimumConfirmations,
                            String comment, String commentTo) {
         if (account == null) {
             account = "";
@@ -846,7 +853,7 @@ public class BitcoinClient {
      * @return the transaction ID for this move of Bitcoins
      * @since 0.3.18
      */
-    public boolean move(String fromAccount, String toAccount, double amount, int minimumConfirmations, String comment) {
+    public boolean move(String fromAccount, String toAccount, BigDecimal amount, int minimumConfirmations, String comment) {
         if (fromAccount == null) {
             fromAccount = "";
         }
@@ -874,12 +881,12 @@ public class BitcoinClient {
         }
     }
 
-    private double checkAndRound(double amount) {
-        if (amount < 0.01) {
+    private BigDecimal checkAndRound(BigDecimal amount) {
+        if (amount.compareTo(new BigDecimal("0.01")) < 0) {
             throw new BitcoinClientException("The current machinery doesn't support transactions of less than 0.01 Bitcoins");
         }
 
-        if (amount > 21000000.0) {
+        if (amount.compareTo(new BigDecimal("21000000")) > 0) {
             throw new BitcoinClientException("Sorry dude, can't transfer that many Bitcoins");
         }
 
@@ -942,15 +949,15 @@ public class BitcoinClient {
     }
 
     /**
-     * Rounds a double to the nearest dwo decimals, rounding UP.
+     * Rounds a double to the nearest two decimals, rounding UP.
      * Not proud of this code, but it works.
      */
-    protected static double roundToTwoDecimals(double amount) {
-        BigDecimal amountTimes100 = new BigDecimal(amount * 100 + 0.5);
+    protected static BigDecimal roundToTwoDecimals(BigDecimal amount) {
+        BigDecimal amountTimes100 = amount.multiply(new BigDecimal(100)).add(new BigDecimal("0.5"));
         BigDecimal roundedAmountTimes100 = new BigDecimal(amountTimes100.intValue());
         BigDecimal roundedAmount = roundedAmountTimes100.divide(new BigDecimal(100.0));
 
-        return roundedAmount.doubleValue();
+        return roundedAmount;
     }
 
     private JSONObject createRequest(String functionName, JSONArray parameters) throws JSONException {

@@ -15,10 +15,12 @@
  */
 package ru.paradoxs.bitcoin.client;
 
+import java.math.BigDecimal;
+
 public class AddressInfo {
     private String address = "";
     private String account = "";
-    private double amount = 0;
+    private BigDecimal amount = BigDecimal.ZERO;
     private long confirmations = 0;
 
     public String getAddress() {
@@ -37,11 +39,11 @@ public class AddressInfo {
         this.account = account;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

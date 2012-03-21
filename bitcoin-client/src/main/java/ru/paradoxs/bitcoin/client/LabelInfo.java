@@ -15,9 +15,11 @@
  */
 package ru.paradoxs.bitcoin.client;
 
+import java.math.BigDecimal;
+
 public class LabelInfo {
     private String label = "";
-    private double amount = 0;
+    private BigDecimal amount = BigDecimal.ZERO;
     private long confirmations = 0;
 
     public String getLabel() {
@@ -28,11 +30,11 @@ public class LabelInfo {
         this.label = label;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
