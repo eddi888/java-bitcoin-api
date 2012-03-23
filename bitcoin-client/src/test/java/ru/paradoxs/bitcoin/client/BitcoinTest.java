@@ -35,12 +35,15 @@ import org.junit.Test;
  * @author mats@henricson.se
  */
 public class BitcoinTest {
-    private static final String EFF_DONATION_ADDRESS = "1MCwBbhNGp5hRm5rC1Aims2YFRe2SXPYKt";
+
+	private static final String BITCOIN_FAUCET_ADDRESS = "15ArtCgi3wmpQAAfYx4riaFmo4prJA4VsK";
+	private static final String TESTNET_FAUCET_ADDRESS = "mhFwRrjRNt8hYeWtm9LwqCpCgXjF38RJqn";
     private static final String RPCUSER          = "RPCUSER";        // TODO: Change to what you have in bitcoin.conf file
     private static final String RPCPASSWORD      = "RPCPASSWORD";    // TODO: Change to what you have in bitcoin.conf file
     private static final String BACKUP_DIRECTORY = "/home/user";     // TODO: Change, but never ever to your Bitcoin data directory !!
-
-    private final BitcoinClient bClient = new BitcoinClient("127.0.0.1", RPCUSER, RPCPASSWORD);
+    private static final boolean IS_TESTNET = false; // TODO: Set true if you are using testnet else false if running tests against main blockchain
+    
+    private BitcoinClient bClient = new BitcoinClient("127.0.0.1", RPCUSER, RPCPASSWORD);
 
     @Test
     public void testGetBalance() {
@@ -152,8 +155,14 @@ public class BitcoinTest {
         assertNotNull(serverInfo);
         assertNotNull(serverInfo.getVersion());
         assertTrue(serverInfo.getBalance().compareTo(BigDecimal.ZERO) >= 0);
-        assertTrue(serverInfo.getBlocks() > 40000);
-        assertTrue(serverInfo.getDifficulty().compareTo(new BigDecimal(35)) > 0);
+        
+        if (IS_TESTNET) {
+        	assertTrue(serverInfo.getBlocks() > 40000);
+        	assertTrue(serverInfo.getDifficulty().compareTo(new BigDecimal(.02)) > 0);
+        } else {
+        	assertTrue(serverInfo.getBlocks() > 90000);
+        	assertTrue(serverInfo.getDifficulty().compareTo(new BigDecimal(1000)) > 0);
+        }
     }
 
     @Test
@@ -166,29 +175,6 @@ public class BitcoinTest {
     }
 
     @Test
-    public void testListReceivedByLabel() {
-        List<LabelInfo> labelInfos = bClient.listReceivedByLabel(1, false);
-
-        System.out.println("labelInfos = " + labelInfos);
-
-        assertTrue(labelInfos != null);
-    }
-
-    @Test
-    public void testGetLabel() {
-        List<AddressInfo> addressInfos = bClient.listReceivedByAddress(1, false);
-
-        for (AddressInfo ai : addressInfos) {
-            String address = ai.getAddress();
-            String label = bClient.getLabel(address);
-
-            System.out.println("label = " + label);
-
-            assertTrue(label.length() > 0);
-        }
-    }
-
-    @Test
     public void testGetAccount() {
         List<AddressInfo> addressInfos = bClient.listReceivedByAddress(1, false);
 
@@ -197,22 +183,6 @@ public class BitcoinTest {
             String account = bClient.getAccount(address);
 
             System.out.println("account = " + account);
-        }
-    }
-
-    @Test
-    public void testGetAddressesByLabel() {
-        List<LabelInfo> labelInfos = bClient.listReceivedByLabel(1, false);
-
-        for (LabelInfo li : labelInfos) {
-            String label = li.getLabel();
-            List<String> addresses = bClient.getAddressesByLabel(label);
-
-            for (String address : addresses) {
-                System.out.println("address = " + address);
-
-                assertTrue(address.length() > 0);
-            }
         }
     }
 
@@ -247,26 +217,6 @@ public class BitcoinTest {
     }
 
     @Test
-    public void testGetReceivedByLabel() {
-        List<LabelInfo> labelInfos = bClient.listReceivedByLabel(1, false);
-
-        for (LabelInfo li : labelInfos) {
-            String label = li.getLabel();
-            BigDecimal amount = li.getAmount();
-            long confirmations = li.getConfirmations();
-
-            assertTrue(amount.compareTo(BigDecimal.ZERO) > 0);
-            assertTrue(confirmations > 0);
-
-            double received = bClient.getReceivedByLabel(label, 1);
-
-            assertEquals(amount, received);
-
-            System.out.println("received = " + received);
-        }
-    }
-
-    @Test
     public void testGetReceivedByAccount() {
         List<AccountInfo> accountInfos = bClient.listReceivedByAccount(1, false);
 
@@ -284,16 +234,6 @@ public class BitcoinTest {
 
             System.out.println("received = " + received);
         }
-    }
-
-    @Test
-    public void testGetNewAddress() {
-        String address = bClient.getNewAddress("Testing testing");
-
-        System.out.println("address = " + address);
-
-        assertNotNull(address);
-        assertEquals(EFF_DONATION_ADDRESS.length(), address.length());
     }
 
     @Test
@@ -324,18 +264,6 @@ public class BitcoinTest {
     }
 
     @Test
-    public void testSetLabelForAddress() {
-        String newLabel = "New Label";
-        String address = bClient.getNewAddress("Testing testing");
-        bClient.setLabelForAddress(address, newLabel);
-        String label = bClient.getLabel(address);
-
-        assertEquals(newLabel, label);
-
-        System.out.println("label = " + label);
-    }
-
-    @Test
     public void testSetAccountForAddress() {
         String newAccount = "Brand New Acount";
         String address = bClient.getAccountAddress("Testing testing client");
@@ -349,11 +277,14 @@ public class BitcoinTest {
 
     @Test
     public void testValidateAddress() {
-        ValidatedAddressInfo effInfo = bClient.validateAddress(EFF_DONATION_ADDRESS);
+    	
+    	String sendAddress = IS_TESTNET ? TESTNET_FAUCET_ADDRESS : BITCOIN_FAUCET_ADDRESS;
+    	
+        ValidatedAddressInfo effInfo = bClient.validateAddress(sendAddress);
 
         assertTrue(effInfo.getIsValid());
         assertFalse(effInfo.getIsMine());
-        assertEquals(EFF_DONATION_ADDRESS, effInfo.getAddress());
+        assertEquals(sendAddress, effInfo.getAddress());
 
         ValidatedAddressInfo bogusInfo = bClient.validateAddress("BogUsAddr3ss");
 
@@ -380,9 +311,10 @@ public class BitcoinTest {
 
     @Test
     public void testSendToAddress() {
-        String message = "Use it wisely, EFF";
-        String messageTo = "EFF";
-        String txId = bClient.sendToAddress(EFF_DONATION_ADDRESS, new BigDecimal("0.01"), message, messageTo);
+    	String sendAddress = IS_TESTNET ? TESTNET_FAUCET_ADDRESS : BITCOIN_FAUCET_ADDRESS;
+        String message = "Loan Repayment";
+        String messageTo = "Faucet";
+        String txId = bClient.sendToAddress(sendAddress, new BigDecimal("0.01"), message, messageTo);
         assertNotNull(txId);
         assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
         assertTrue(txId.length() > 30);    // A 256 bit hash
@@ -400,9 +332,10 @@ public class BitcoinTest {
 
     @Test
     public void testSendFrom() {
-        String message = "Use it wisely, EFF";
-        String toMessage = "EFF";
-        String txId = bClient.sendFrom(null, EFF_DONATION_ADDRESS, new BigDecimal("0.01"), 10, message, toMessage);
+    	String sendAddress = IS_TESTNET ? TESTNET_FAUCET_ADDRESS : BITCOIN_FAUCET_ADDRESS;
+        String message = "Loan Repayment";
+        String toMessage = "Faucet";
+        String txId = bClient.sendFrom(null, sendAddress, new BigDecimal("0.01"), 10, message, toMessage);
         assertNotNull(txId);
         assertFalse(txId.equals("sent"));  // Old (pre 0.3.17) behaviour
         assertTrue(txId.length() > 30);    // A 256 bit hash
@@ -453,7 +386,8 @@ public class BitcoinTest {
             assertTrue(category.equals("generate") ||
                        category.equals("send") ||
                        category.equals("receive") ||
-                       category.equals("move"));
+                       category.equals("move") ||
+                       category.equals("immature"));
 
             // Can't assert on amount, since it can be positive and negative
 

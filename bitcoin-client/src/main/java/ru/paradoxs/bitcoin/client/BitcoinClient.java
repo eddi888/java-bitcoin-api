@@ -22,11 +22,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import ru.paradoxs.bitcoin.client.exceptions.BitcoinClientException;
 import ru.paradoxs.bitcoin.http.HttpSession;
@@ -82,34 +83,6 @@ public class BitcoinClient {
     }
 
     /**
-     * Returns the list of addresses with the given label
-     *
-     * @param label Name of label
-     * @return list of addresses for that label
-     * @deprecated Use #getAddressesByAccount(String) instead
-     */
-    @Deprecated
-    public List<String> getAddressesByLabel(String label) {
-        try {
-            JSONArray parameters = new JSONArray().put(label);
-            JSONObject request = createRequest("getaddressesbylabel", parameters);
-            JSONObject response = session.sendAndReceive(request);
-            JSONArray result = (JSONArray)response.get("result");
-            int size = result.length();
-
-            List<String> list = new ArrayList<String>();
-
-            for (int i = 0; i < size; i++) {
-                list.add(result.getString(i));
-            }
-
-            return list;
-        } catch (JSONException e) {
-            throw new BitcoinClientException("Got incorrect JSON for this label: " + label, e);
-        }
-    }
-
-    /**
      * Returns the list of addresses for the given account
      *
      * @param account name of account, if null or empty it means the default account
@@ -122,11 +95,11 @@ public class BitcoinClient {
         }
 
         try {
-            JSONArray parameters = new JSONArray().put(account);
+            JSONArray parameters = new JSONArray().element(account);
             JSONObject request = createRequest("getaddressesbyaccount", parameters);
             JSONObject response = session.sendAndReceive(request);
             JSONArray result = (JSONArray)response.get("result");
-            int size = result.length();
+            int size = result.size();
 
             List<String> list = new ArrayList<String>();
 
@@ -169,7 +142,7 @@ public class BitcoinClient {
         }
 
         try {
-            JSONArray parameters = new JSONArray().put(account);
+            JSONArray parameters = new JSONArray().element(account);
             JSONObject request = createRequest("getbalance", parameters);
             JSONObject response = session.sendAndReceive(request);
 
@@ -285,7 +258,7 @@ public class BitcoinClient {
      */
     public void setGenerate(boolean isGenerate, int processorsCount) {
         try {
-            JSONArray parameters = new JSONArray().put(isGenerate).put(processorsCount);
+            JSONArray parameters = new JSONArray().element(isGenerate).element(processorsCount);
             JSONObject request = createRequest("setgenerate", parameters);
             session.sendAndReceive(request);
         } catch (JSONException e) {
@@ -321,26 +294,6 @@ public class BitcoinClient {
     }
 
     /**
-     * Returns the label associated with the given address
-     *
-     * @param address the address we want the label for
-     * @return the label associated with a certain address
-     * @deprecated Use #getAccount(String) instead
-     */
-    @Deprecated
-    public String getLabel(String address) {
-        try {
-            JSONArray parameters = new JSONArray().put(address);
-            JSONObject request = createRequest("getlabel", parameters);
-            JSONObject response = session.sendAndReceive(request);
-
-            return response.getString("result");
-        } catch (JSONException e) {
-            throw new BitcoinClientException("Exception when getting the label associated with this address: " + address, e);
-        }
-    }
-
-    /**
      * Returns the account associated with the given address
      *
      * @param address the address for which we want to lookup the account
@@ -349,31 +302,13 @@ public class BitcoinClient {
      */
     public String getAccount(String address) {
         try {
-            JSONArray parameters = new JSONArray().put(address);
+            JSONArray parameters = new JSONArray().element(address);
             JSONObject request = createRequest("getaccount", parameters);
             JSONObject response = session.sendAndReceive(request);
 
             return response.getString("result");
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when getting the account associated with this address: " + address, e);
-        }
-    }
-
-    /**
-     * Sets the label associated with the given address
-     *
-     * @param address the address we want to set a label for
-     * @param label if null then label remove
-     * @deprecated Use #setAccountForAddress(String, String) instead
-     */
-    @Deprecated
-    public void setLabelForAddress(String address, String label) {
-        try {
-            JSONArray parameters = new JSONArray().put(address).put(label);
-            JSONObject request = createRequest("setlabel", parameters);
-            session.sendAndReceive(request);
-        } catch (JSONException e) {
-            throw new BitcoinClientException("Exception when setting the label associated with a given address", e);
         }
     }
 
@@ -386,33 +321,11 @@ public class BitcoinClient {
      */
     public void setAccountForAddress(String address, String account) {
         try {
-            JSONArray parameters = new JSONArray().put(address).put(account);
+            JSONArray parameters = new JSONArray().element(address).element(account);
             JSONObject request = createRequest("setaccount", parameters);
             session.sendAndReceive(request);
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when setting the account associated with a given address", e);
-        }
-    }
-
-    /**
-     * Returns a new bitcoin address for receiving payments. If [label] is
-     * specified (recommended), it is added to the address book so payments
-     * received with the address will be labeled.
-     *
-     * @param label if not null(recommended), address will be labeled
-     * @return the new bitcoin address for receiving payments
-     * @deprecated Use #getAccountAddress(String) instead
-     */
-    @Deprecated
-    public String getNewAddress(String label) {
-        try {
-            JSONArray parameters = new JSONArray().put(label);
-            JSONObject request = createRequest("getnewaddress", parameters);
-            JSONObject response = session.sendAndReceive(request);
-
-            return response.getString("result");
-        } catch (JSONException e) {
-            throw new BitcoinClientException("Exception when getting the new bitcoin address for receiving payments", e);
         }
     }
 
@@ -431,7 +344,7 @@ public class BitcoinClient {
         }
 
         try {
-            JSONArray parameters = new JSONArray().put(account);
+            JSONArray parameters = new JSONArray().element(account);
             JSONObject request = createRequest("getaccountaddress", parameters);
             JSONObject response = session.sendAndReceive(request);
 
@@ -450,34 +363,13 @@ public class BitcoinClient {
      */
     public BigDecimal getReceivedByAddress(String address, long minimumConfirmations) {
         try {
-            JSONArray parameters = new JSONArray().put(address).put(minimumConfirmations);
+            JSONArray parameters = new JSONArray().element(address).element(minimumConfirmations);
             JSONObject request = createRequest("getreceivedbyaddress", parameters);
             JSONObject response = session.sendAndReceive(request);
 
             return getBigDecimal(response, "result");
         } catch (JSONException e) {
             throw new BitcoinClientException("Exception when getting the total amount received by bitcoinaddress", e);
-        }
-    }
-
-    /**
-     * Returns the total amount received by addresses with label in transactions
-     *
-     * @param label the label we want to know the received amount for
-     * @param minimumConfirmations the minimum number of confirmations for a transaction to count
-     * @return total amount received
-     * @deprecated Use #getReceivedByAccount(String, long) instead
-     */
-    @Deprecated
-    public double getReceivedByLabel(String label, long minimumConfirmations) {
-        try {
-            JSONArray parameters = new JSONArray().put(label).put(minimumConfirmations);
-            JSONObject request = createRequest("getreceivedbylabel", parameters);
-            JSONObject response = session.sendAndReceive(request);
-
-            return response.getDouble("result");
-        } catch (JSONException e) {
-            throw new BitcoinClientException("Exception when getting the total amount received with label: " + label, e);
         }
     }
 
@@ -491,7 +383,7 @@ public class BitcoinClient {
      */
     public BigDecimal getReceivedByAccount(String account, long minimumConfirmations) {
         try {
-            JSONArray parameters = new JSONArray().put(account).put(minimumConfirmations);
+            JSONArray parameters = new JSONArray().element(account).element(minimumConfirmations);
             JSONObject request = createRequest("getreceivedbyaccount", parameters);
             JSONObject response = session.sendAndReceive(request);
 
@@ -509,7 +401,7 @@ public class BitcoinClient {
      */
     public String help(String command) {
         try {
-            JSONArray parameters = new JSONArray().put(command);
+            JSONArray parameters = new JSONArray().element(command);
             JSONObject request = createRequest("help", parameters);
             JSONObject response = session.sendAndReceive(request);
 
@@ -528,11 +420,11 @@ public class BitcoinClient {
      */
     public List<AddressInfo> listReceivedByAddress(long minimumConfirmations, boolean includeEmpty) {
         try {
-            JSONArray parameters = new JSONArray().put(minimumConfirmations).put(includeEmpty);
+            JSONArray parameters = new JSONArray().element(minimumConfirmations).element(includeEmpty);
             JSONObject request = createRequest("listreceivedbyaddress", parameters);
             JSONObject response = session.sendAndReceive(request);
             JSONArray result = response.getJSONArray("result");
-            int size = result.length();
+            int size = result.size();
             List<AddressInfo> list = new ArrayList<AddressInfo>();
 
             for (int i = 0; i < size; i++) {
@@ -552,40 +444,6 @@ public class BitcoinClient {
     }
 
     /**
-     * Info about all received transactions by label
-     *
-     * @param minimumConfirmations is the minimum number of confirmations before payments are included
-     * @param includeEmpty whether to include labels that haven't received any payments
-     * @return info about all received transactions by label
-     * @deprecated Use #listReceivedByAccount(long, boolean) instead
-     */
-    @Deprecated
-    public List<LabelInfo> listReceivedByLabel(long minimumConfirmations, boolean includeEmpty) {
-        try {
-            JSONArray parameters = new JSONArray().put(minimumConfirmations).put(includeEmpty);
-            JSONObject request = createRequest("listreceivedbylabel", parameters);
-            JSONObject response = session.sendAndReceive(request);
-            JSONArray result = response.getJSONArray("result");
-            int size = result.length();
-
-            List<LabelInfo> list = new ArrayList<LabelInfo>(size);
-
-            for (int i = 0; i < size; i++) {
-                LabelInfo info = new LabelInfo();
-                JSONObject jObject = result.getJSONObject(i);
-                info.setLabel        (jObject.getString("label"));
-                info.setAmount       (getBigDecimal(jObject, "amount"));
-                info.setConfirmations(jObject.getLong("confirmations"));
-                list.add(info);
-            }
-
-            return list;
-        } catch (JSONException e) {
-            throw new BitcoinClientException("Exception when getting the received amount by label", e);
-        }
-    }
-
-    /**
      * Info about all received transactions by account
      *
      * @param minimumConfirmations is the minimum number of confirmations before payments are included
@@ -595,11 +453,11 @@ public class BitcoinClient {
      */
     public List<AccountInfo> listReceivedByAccount(long minimumConfirmations, boolean includeEmpty) {
         try {
-            JSONArray parameters = new JSONArray().put(minimumConfirmations).put(includeEmpty);
+            JSONArray parameters = new JSONArray().element(minimumConfirmations).element(includeEmpty);
             JSONObject request = createRequest("listreceivedbyaccount", parameters);
             JSONObject response = session.sendAndReceive(request);
             JSONArray result = response.getJSONArray("result");
-            int size = result.length();
+            int size = result.size();
 
             List<AccountInfo> list = new ArrayList<AccountInfo>(size);
 
@@ -636,11 +494,11 @@ public class BitcoinClient {
         }
 
         try {
-            JSONArray parameters = new JSONArray().put(account).put(count);
+            JSONArray parameters = new JSONArray().element(account).element(count);
             JSONObject request = createRequest("listtransactions", parameters);
             JSONObject response = session.sendAndReceive(request);
             JSONArray result = response.getJSONArray("result");
-            int size = result.length();
+            int size = result.size();
 
             List<TransactionInfo> list = new ArrayList<TransactionInfo>(size);
 
@@ -665,7 +523,7 @@ public class BitcoinClient {
      */
     public TransactionInfo getTransaction(String txId) {
         try {
-            JSONArray parameters = new JSONArray().put(txId);
+            JSONArray parameters = new JSONArray().element(txId);
             JSONObject request = createRequest("gettransaction", parameters);
             JSONObject response = session.sendAndReceive(request);
             JSONObject result = (JSONObject) response.get("result");
@@ -681,35 +539,35 @@ public class BitcoinClient {
 
         info.setAmount(getBigDecimal(jObject, "amount"));
 
-        if (!jObject.isNull("category")) {
+        if (jObject.has("category")) {
             info.setCategory(jObject.getString("category"));
         }
 
-        if (!jObject.isNull("fee")) {
-            info.setFee(getBigDecimal(jObject, "fee"));
+        if (jObject.has("fee")) {
+        	info.setFee(getBigDecimal(jObject, "fee"));
         }
 
-        if (!jObject.isNull("message")) {
+        if (jObject.has("message")) {
             info.setMessage(jObject.getString("message"));
         }
 
-        if (!jObject.isNull("to")) {
+        if (jObject.has("to")) {
             info.setTo(jObject.getString("to"));
         }
 
-        if (!jObject.isNull("confirmations")) {
+        if (jObject.has("confirmations")) {
             info.setConfirmations(jObject.getLong("confirmations"));
         }
 
-        if (!jObject.isNull("txid")) {
+        if (jObject.has("txid")) {
             info.setTxId(jObject.getString("txid"));
         }
 
-        if (!jObject.isNull("otheraccount")) {
+        if (jObject.has("otheraccount")) {
             info.setOtherAccount(jObject.getString("otheraccount"));
         }
         
-        if (!jObject.isNull("time")) {
+        if (!jObject.has("time")) {
             info.setTime(jObject.getLong("time"));
         }
 
@@ -767,7 +625,7 @@ public class BitcoinClient {
      */
     public boolean getWork(String block) {
         try {
-            JSONArray parameters = new JSONArray().put(block);
+            JSONArray parameters = new JSONArray().element(block);
             JSONObject request = createRequest("getwork", parameters);
             JSONObject response = session.sendAndReceive(request);
 
@@ -790,8 +648,8 @@ public class BitcoinClient {
         amount = checkAndRound(amount);
 
         try {
-            JSONArray parameters = new JSONArray().put(bitcoinAddress).put(amount)
-                                                  .put(comment).put(commentTo);
+            JSONArray parameters = new JSONArray().element(bitcoinAddress).element(amount)
+                                                  .element(comment).element(commentTo);
             JSONObject request = createRequest("sendtoaddress", parameters);
             JSONObject response = session.sendAndReceive(request);
 
@@ -829,8 +687,8 @@ public class BitcoinClient {
         amount = checkAndRound(amount);
 
         try {
-            JSONArray parameters = new JSONArray().put(account).put(bitcoinAddress).put(amount)
-                                                  .put(minimumConfirmations).put(comment).put(commentTo);
+            JSONArray parameters = new JSONArray().element(account).element(bitcoinAddress).element(amount)
+                                                  .element(minimumConfirmations).element(comment).element(commentTo);
             JSONObject request = createRequest("sendfrom", parameters);
             JSONObject response = session.sendAndReceive(request);
 
@@ -869,8 +727,8 @@ public class BitcoinClient {
         amount = checkAndRound(amount);
 
         try {
-            JSONArray parameters = new JSONArray().put(fromAccount).put(toAccount).put(amount)
-                                                  .put(minimumConfirmations).put(comment);
+            JSONArray parameters = new JSONArray().element(fromAccount).element(toAccount).element(amount)
+                                                  .element(minimumConfirmations).element(comment);
             JSONObject request = createRequest("move", parameters);
             JSONObject response = session.sendAndReceive(request);
 
@@ -913,7 +771,7 @@ public class BitcoinClient {
      */
     public ValidatedAddressInfo validateAddress(String address) {
         try {
-            JSONArray parameters = new JSONArray().put(address);
+            JSONArray parameters = new JSONArray().element(address);
             JSONObject request = createRequest("validateaddress", parameters);
             JSONObject response = session.sendAndReceive(request);
             JSONObject result = (JSONObject) response.get("result");
@@ -940,7 +798,7 @@ public class BitcoinClient {
      */
     public void backupWallet(String destination) {
         try {
-            JSONArray parameters = new JSONArray().put(destination);
+            JSONArray parameters = new JSONArray().element(destination);
             JSONObject request = createRequest("backupwallet", parameters);
             session.sendAndReceive(request);
         } catch (JSONException e) {

@@ -18,6 +18,11 @@ package ru.paradoxs.bitcoin.http;
 import ru.paradoxs.bitcoin.http.exceptions.HttpSessionException;
 import java.io.IOException;
 import java.net.URI;
+
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+import net.sf.json.util.JSONTokener;
+
 import org.apache.commons.httpclient.Credentials;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -27,9 +32,7 @@ import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+
 
 /**
  * Manages the HTTP machinery for accessing the Bitcoin server.
