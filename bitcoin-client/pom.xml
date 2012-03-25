@@ -5,7 +5,7 @@
     <groupId>ru.paradoxs</groupId>
     <artifactId>bitcoin-client</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.19</version>
+    <version>trunk</version>
     <name>${project.artifactId}-${project.version}</name>
     <description>The Java client for the Bitcoin server</description>
     <url>http://maven.apache.org</url>
